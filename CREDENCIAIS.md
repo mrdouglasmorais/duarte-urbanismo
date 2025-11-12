@@ -8,14 +8,17 @@
 ### Credenciais de Acesso
 
 #### Usuário Administrador
+
 - **E-mail:** `gestor@sgci.com`
 - **Senha:** `123456`
 
 #### Usuário: Gelvane da Silva
+
 - **E-mail:** `gelvane.silva@duarteurbanismo.com`
 - **Senha:** `123456`
 
 #### Usuário: Daniel Duarte
+
 - **E-mail:** `daniel.duarte@duarteurbanismo.com`
 - **Senha:** `123456`
 

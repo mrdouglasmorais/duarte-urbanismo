@@ -12,14 +12,14 @@ function hashPassword(password) {
 
 async function createUsers() {
   const client = new MongoClient(MONGODB_URI);
-  
+
   try {
     await client.connect();
     console.log('✅ Conectado ao MongoDB');
-    
+
     const db = client.db(DB_NAME);
     const collection = db.collection(COLLECTION_NAME);
-    
+
     const users = [
       {
         nome: 'Gelvane da Silva',
@@ -34,19 +34,19 @@ async function createUsers() {
         ativo: true
       }
     ];
-    
+
     const now = new Date();
-    
+
     for (const userData of users) {
       try {
         // Verificar se usuário já existe
         const existing = await collection.findOne({ email: userData.email.toLowerCase() });
-        
+
         if (existing) {
           console.log(`⚠️  Usuário ${userData.email} já existe. Pulando...`);
           continue;
         }
-        
+
         const user = {
           id: randomUUID(),
           nome: userData.nome.trim(),
@@ -56,7 +56,7 @@ async function createUsers() {
           createdAt: now,
           updatedAt: now
         };
-        
+
         await collection.insertOne(user);
         console.log(`✅ Usuário criado: ${userData.nome} (${userData.email})`);
         console.log(`   Senha: ${userData.password}`);
@@ -64,13 +64,13 @@ async function createUsers() {
         console.error(`❌ Erro ao criar usuário ${userData.nome}:`, error.message);
       }
     }
-    
+
     console.log('\n📋 Resumo dos usuários criados:');
     const allUsers = await collection.find({}).toArray();
     allUsers.forEach(user => {
       console.log(`   - ${user.nome} (${user.email}) - ${user.ativo ? 'Ativo' : 'Inativo'}`);
     });
-    
+
   } catch (error) {
     console.error('❌ Erro:', error);
     process.exit(1);

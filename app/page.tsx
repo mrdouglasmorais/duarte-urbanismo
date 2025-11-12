@@ -305,7 +305,7 @@ export default function LandingPage() {
                 Acessar painel
               </Link>
               <a
-                href="https://wa.me/554792112284?text=Ol%C3%A1%2C+tenho+interesse+no+empreendimento+P%C3%B4r+do+Sol+Eco+Village.+Sou+%5BSeu+Nome%5D."
+                href="https://wa.me/554792112284?text=Ol%C3%A1%2C+tenho+interesse+no+empreendimento+P%C3%B4r+do+Sol+Eco+Village."
                 target="_blank"
                 rel="noreferrer"
                 className="rounded-full bg-white px-6 py-3 text-slate-900 transition hover:-translate-y-1"
