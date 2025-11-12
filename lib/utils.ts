@@ -1,4 +1,15 @@
 export function numeroParaExtenso(numero: number): string {
+  if (typeof numero !== 'number' || isNaN(numero) || !isFinite(numero)) {
+    return 'zero';
+  }
+
+  if (numero < 0) {
+    return 'menos ' + numeroParaExtenso(Math.abs(numero));
+  }
+
+  if (numero === 0) {
+    return 'zero';
+  }
   const unidades = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'];
   const dezenaDez = ['dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
   const dezenas = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
@@ -86,6 +97,9 @@ export function numeroParaExtenso(numero: number): string {
 }
 
 export function formatarMoeda(valor: number): string {
+  if (typeof valor !== 'number' || isNaN(valor) || !isFinite(valor)) {
+    return 'R$ 0,00';
+  }
   return valor.toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL'
@@ -93,10 +107,12 @@ export function formatarMoeda(valor: number): string {
 }
 
 export function formatarData(data: string): string {
+  if (!data) return '';
   const d = new Date(data + 'T00:00:00');
+  if (isNaN(d.getTime())) return data; // Retorna a data original se inválida
   return d.toLocaleDateString('pt-BR', {
     day: '2-digit',
-    month: 'long',
+    month: '2-digit',
     year: 'numeric'
   });
 }
@@ -113,4 +129,25 @@ export function formatarCPFCNPJ(valor: string): string {
   }
 
   return valor;
+}
+
+export function formatarCEP(valor: string): string {
+  const numeros = valor.replace(/\D/g, '').slice(0, 8);
+  if (numeros.length <= 5) {
+    return numeros;
+  }
+  return `${numeros.slice(0, 5)}-${numeros.slice(5)}`;
+}
+
+export function formatarDataHoraCompleta(data?: Date | string): string {
+  const agora = data ? (typeof data === 'string' ? new Date(data) : data) : new Date();
+  return agora.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZone: 'America/Sao_Paulo'
+  });
 }

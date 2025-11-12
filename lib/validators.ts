@@ -120,11 +120,40 @@ export function validarTelefone(telefone: string): { valido: boolean; mensagem?:
     return { valido: false, mensagem: 'Telefone obrigatório' };
   }
 
+  // Remove código do país brasileiro (55) se presente no início
+  let numerosSemCodigoPais = numeros;
+  if (numeros.length >= 12 && numeros.startsWith('55')) {
+    numerosSemCodigoPais = numeros.substring(2);
+  }
+
   // Aceita telefones com 10 ou 11 dígitos (com ou sem 9 na frente)
-  if (numeros.length < 10 || numeros.length > 11) {
+  // Também aceita formato internacional com código do país (12-13 dígitos)
+  if (numerosSemCodigoPais.length < 10 || numerosSemCodigoPais.length > 11) {
+    // Se ainda tem código do país, verificar se é formato internacional válido
+    if (numeros.length >= 12 && numeros.length <= 15) {
+      // Formato internacional aceito (código país + DDD + número)
+      return { valido: true };
+    }
     return {
       valido: false,
-      mensagem: 'Telefone deve ter 10 ou 11 dígitos'
+      mensagem: 'Telefone deve ter 10 ou 11 dígitos (ou formato internacional válido)'
+    };
+  }
+
+  return { valido: true };
+}
+
+export function validarCEP(cep: string): { valido: boolean; mensagem?: string } {
+  const numeros = cep.replace(/\D/g, '');
+
+  if (numeros.length === 0) {
+    return { valido: false, mensagem: 'CEP obrigatório' };
+  }
+
+  if (numeros.length !== 8) {
+    return {
+      valido: false,
+      mensagem: 'CEP deve ter 8 dígitos'
     };
   }
 

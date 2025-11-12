@@ -1,7 +1,6 @@
+import { APP_BASE_URL, HASH_SECRET } from '@/lib/constants';
 import { ReciboData } from '@/types/recibo';
 import crypto from 'crypto';
-
-const hashSecret = process.env.RECIBO_HASH_SECRET || '';
 
 function canonicalize(data: ReciboData): string {
   const fields = [
@@ -14,6 +13,7 @@ function canonicalize(data: ReciboData): string {
     data.formaPagamento.trim().toUpperCase(),
     data.emitidoPor.trim().toUpperCase(),
     data.cpfEmitente.replace(/\D/g, ''),
+    data.cepEmitente.replace(/\D/g, ''),
     data.enderecoEmitente.trim().toUpperCase(),
     data.telefoneEmitente.replace(/\D/g, ''),
     data.emailEmitente.trim().toLowerCase()
@@ -24,17 +24,17 @@ function canonicalize(data: ReciboData): string {
 
 export function generateReciboHash(data: ReciboData): string {
   const payload = canonicalize(data);
-  const content = hashSecret ? `${payload}|${hashSecret}` : payload;
+  const content = `${payload}|${HASH_SECRET}`;
   return crypto.createHash('sha256').update(content).digest('hex');
 }
 
 export function buildVerificationUrl(numero: string, hash: string, origin?: string): string {
-  const baseUrl = (origin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const baseUrl = (origin || APP_BASE_URL).replace(/\/$/, '');
   return `${baseUrl}/api/recibos/${encodeURIComponent(numero)}?hash=${encodeURIComponent(hash)}`;
 }
 
 export function buildShareUrl(shareId: string, origin?: string): string {
-  const baseUrl = (origin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const baseUrl = (origin || APP_BASE_URL).replace(/\/$/, '');
   return `${baseUrl}/recibos/share/${encodeURIComponent(shareId)}`;
 }
 

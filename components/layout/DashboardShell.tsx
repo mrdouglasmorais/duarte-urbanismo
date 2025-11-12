@@ -1,11 +1,11 @@
 'use client';
 
+import { PageTransition } from '@/components/PageTransition';
+import { useAuth } from '@/contexts/auth-context';
+import { EMPRESA_TELEFONE } from '@/lib/constants';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useAuth } from '@/contexts/auth-context';
-import { PageTransition } from '@/components/PageTransition';
-import { EMPRESA_TELEFONE } from '@/lib/constants';
 
 const TIMEZONE_SC = 'America/Sao_Paulo';
 
@@ -32,7 +32,8 @@ const navLinks = [
   { href: '/painel/empreendimentos', label: 'Empreendimentos' },
   { href: '/painel/clientes', label: 'Clientes' },
   { href: '/painel/corretores', label: 'Corretores' },
-  { href: '/painel/negociacoes', label: 'Negociações' }
+  { href: '/painel/negociacoes', label: 'Negociações' },
+  { href: '/painel/usuarios', label: 'Usuários' }
 ];
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -59,8 +60,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">S.G.C.I</p>
-            <p className="text-lg font-semibold">Sistema de Gestão de Contratos Imobiliários</p>
+            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Duarte Urbanismo</p>
+            <p className="text-lg font-semibold">Sistema de Gestão de Contratos Imobiliários Duarte Urbanismo</p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <div className="text-right">
@@ -85,9 +86,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-xs font-semibold uppercase tracking-[0.35em] ${
-                    active ? 'text-amber-300' : 'text-white/70 hover:text-white'
-                  }`}
+                  className={`text-xs font-semibold uppercase tracking-[0.35em] ${active ? 'text-amber-300' : 'text-white/70 hover:text-white'
+                    }`}
                 >
                   {link.label}
                 </Link>

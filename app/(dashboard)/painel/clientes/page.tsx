@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSgci } from "@/contexts/sgci-context";
 import type { Cliente, PessoaTipo } from "@/types/sgci";
-import { validarCPFouCNPJ, validarEmail, validarTelefone } from "@/lib/validators";
+import { validarCEP, validarCPFouCNPJ, validarEmail, validarTelefone } from "@/lib/validators";
 
 const initialForm = {
   tipo: "PF" as PessoaTipo,
@@ -14,6 +14,7 @@ const initialForm = {
   contatoSecundario: "",
   referencias: "",
   observacoes: "",
+  cep: "",
   endereco: ""
 };
 
@@ -22,6 +23,118 @@ export default function ClientesPage() {
   const [form, setForm] = useState({ ...initialForm });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isCepLoading, setIsCepLoading] = useState(false);
+  const [cepStatus, setCepStatus] = useState<string | null>(null);
+
+  const maskCep = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 8);
+    if (digits.length <= 5) return digits;
+    return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  };
+
+  const clearCepError = () => {
+    setErrors(prev => {
+      if (!prev.cep) return prev;
+      const clone = { ...prev };
+      delete clone.cep;
+      return clone;
+    });
+  };
+
+  const handleCepChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const masked = maskCep(event.target.value);
+    setForm(prev => ({ ...prev, cep: masked }));
+    setCepStatus(null);
+    clearCepError();
+  };
+
+  const consultarCep = async (masked: string, digits: string) => {
+    try {
+      setIsCepLoading(true);
+      setCepStatus("Consultando CEP...");
+      const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      if (!response.ok) {
+        throw new Error("Falha na consulta do CEP.");
+      }
+      const data = await response.json();
+
+      if (data.erro) {
+        setErrors(prev => ({ ...prev, cep: "CEP não encontrado." }));
+        setCepStatus("CEP não encontrado.");
+        return;
+      }
+
+      const formattedAddress = [
+        data.logradouro,
+        data.bairro,
+        data.localidade && data.uf ? `${data.localidade} - ${data.uf}` : undefined
+      ]
+        .filter(Boolean)
+        .join(", ");
+
+      setForm(prev => ({
+        ...prev,
+        cep: masked,
+        endereco: formattedAddress || prev.endereco
+      }));
+
+      setErrors(prev => {
+        const clone = { ...prev };
+        delete clone.cep;
+        if (formattedAddress) delete clone.endereco;
+        return clone;
+      });
+
+      setCepStatus(formattedAddress ? "Endereço preenchido automaticamente via ViaCEP." : "CEP válido.");
+    } catch (error) {
+      console.error("Erro ao consultar CEP:", error);
+      setErrors(prev => ({ ...prev, cep: "Não foi possível consultar o CEP no momento." }));
+      setCepStatus("Não foi possível consultar o CEP no momento.");
+    } finally {
+      setIsCepLoading(false);
+    }
+  };
+
+  const handleCepBlur = async (event: React.FocusEvent<HTMLInputElement>) => {
+    const masked = maskCep(event.target.value);
+    const digits = masked.replace(/\D/g, "");
+    setForm(prev => ({ ...prev, cep: masked }));
+
+    const validation = validarCEP(masked);
+    if (validation.mensagem) {
+      setErrors(prev => ({ ...prev, cep: validation.mensagem! }));
+      setCepStatus(null);
+      return;
+    }
+
+    if (digits.length !== 8) {
+      setCepStatus("Informe os 8 dígitos do CEP para consultar.");
+      return;
+    }
+
+    await consultarCep(masked, digits);
+  };
+
+  const handleCepLookupClick = async () => {
+    const masked = maskCep(form.cep);
+    const digits = masked.replace(/\D/g, "");
+    setForm(prev => ({ ...prev, cep: masked }));
+
+    const validation = validarCEP(masked);
+    if (validation.mensagem) {
+      setErrors(prev => ({ ...prev, cep: validation.mensagem! }));
+      setCepStatus(null);
+      return;
+    }
+
+    if (digits.length !== 8) {
+      setErrors(prev => ({ ...prev, cep: "CEP deve ter 8 dígitos" }));
+      setCepStatus("Informe os 8 dígitos do CEP para consultar.");
+      return;
+    }
+
+    await consultarCep(masked, digits);
+  };
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -38,6 +151,8 @@ export default function ClientesPage() {
     if (emailValidation.mensagem) newErrors.email = emailValidation.mensagem;
     const telefoneValidation = validarTelefone(form.telefone);
     if (telefoneValidation.mensagem) newErrors.telefone = telefoneValidation.mensagem;
+    const cepValidation = validarCEP(form.cep);
+    if (cepValidation.mensagem) newErrors.cep = cepValidation.mensagem;
     if (!form.endereco.trim()) newErrors.endereco = "Endereço obrigatório";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -47,6 +162,7 @@ export default function ClientesPage() {
     event.preventDefault();
     if (!validate()) return;
 
+    const maskedCep = maskCep(form.cep);
     const payload = {
       tipo: form.tipo,
       nome: form.nome.trim(),
@@ -56,6 +172,7 @@ export default function ClientesPage() {
       contatoSecundario: form.contatoSecundario.trim() || undefined,
       referencias: form.referencias.trim() || undefined,
       observacoes: form.observacoes.trim() || undefined,
+      cep: maskedCep || undefined,
       endereco: form.endereco.trim()
     };
 
@@ -68,6 +185,7 @@ export default function ClientesPage() {
     setForm({ ...initialForm });
     setEditingId(null);
     setErrors({});
+    setCepStatus(null);
   };
 
   const handleEdit = (cliente: Cliente) => {
@@ -81,8 +199,10 @@ export default function ClientesPage() {
       contatoSecundario: cliente.contatoSecundario ?? "",
       referencias: cliente.referencias ?? "",
       observacoes: cliente.observacoes ?? "",
+      cep: maskCep(cliente.cep ?? ""),
       endereco: cliente.endereco
     });
+    setCepStatus(null);
   };
 
   const handleDelete = (id: string) => {
@@ -184,6 +304,32 @@ export default function ClientesPage() {
               />
               {errors.telefone && <p className="text-xs text-red-600">{errors.telefone}</p>}
             </div>
+            <div>
+              <label className="text-sm font-medium text-slate-700">CEP</label>
+              <div className="mt-1 flex gap-2">
+                <input
+                  type="text"
+                  value={form.cep}
+                  onChange={handleCepChange}
+                  onBlur={handleCepBlur}
+                  placeholder="00000-000"
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={handleCepLookupClick}
+                  disabled={isCepLoading}
+                  className="rounded-xl border border-slate-200 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {isCepLoading ? "Buscando..." : "Buscar CEP"}
+                </button>
+              </div>
+              {errors.cep && <p className="text-xs text-red-600">{errors.cep}</p>}
+              {cepStatus && !errors.cep && (
+                <p className="text-xs text-slate-500">{cepStatus}</p>
+              )}
+            </div>
             <div className="sm:col-span-2">
               <label className="text-sm font-medium text-slate-700">Endereço</label>
               <input
@@ -253,7 +399,10 @@ export default function ClientesPage() {
                 <p className="mt-2 text-sm text-slate-600">{cliente.email}</p>
                 <p className="text-sm text-slate-600">{cliente.telefone}</p>
                 {cliente.contatoSecundario && <p className="text-sm text-slate-500">Contato secundário: {cliente.contatoSecundario}</p>}
-                <p className="text-xs text-slate-500">{cliente.endereco}</p>
+                <p className="text-xs text-slate-500">
+                  {cliente.cep ? `CEP: ${cliente.cep} · ` : ""}
+                  {cliente.endereco}
+                </p>
                 {cliente.referencias && (
                   <p className="mt-2 text-sm text-slate-600">
                     <strong>Referências:</strong> {cliente.referencias}

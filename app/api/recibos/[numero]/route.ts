@@ -1,6 +1,7 @@
 import { buildShareUrl, generateReciboHash } from '@/lib/authenticity';
 import { findReciboByNumero } from '@/lib/recibos-repository';
 import { NextRequest, NextResponse } from 'next/server';
+import { APP_BASE_URL } from '@/lib/constants';
 
 interface RouteContext {
   params: Promise<{ numero: string }>;
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const expectedHash = generateReciboHash(recibo);
     const hashMatches = recibo.hash === expectedHash;
     const providedHashMatches = hashParam ? hashParam === recibo.hash : undefined;
-    const origin = request.headers.get('origin') ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+    const origin = request.headers.get('origin') ?? APP_BASE_URL;
 
     return NextResponse.json({
       valid: hashMatches && (providedHashMatches ?? true),
@@ -41,6 +42,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         formaPagamento: recibo.formaPagamento,
         emitidoPor: recibo.emitidoPor,
         cpfEmitente: recibo.cpfEmitente,
+        cepEmitente: recibo.cepEmitente,
         enderecoEmitente: recibo.enderecoEmitente,
         telefoneEmitente: recibo.telefoneEmitente,
         emailEmitente: recibo.emailEmitente,

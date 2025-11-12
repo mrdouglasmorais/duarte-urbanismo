@@ -42,7 +42,8 @@ export function buildStaticPixPayload({ key, amount, merchantName, merchantCity,
   const sanitizedKey = key.replace(/\s+/g, '').replace(/[.-]/g, '');
   const sanitizedName = normalize(merchantName, 25);
   const sanitizedCity = normalize(merchantCity, 15) || 'BRASIL';
-  const sanitizedTxId = normalize(txId || 'SGCI', 25);
+  // Garantir que txId tenha no máximo 25 caracteres e pelo menos 1
+  const sanitizedTxId = normalize(txId || 'SGCI', 25).slice(0, 25) || 'SGCI';
   const amountString = amount > 0 ? amount.toFixed(2) : undefined;
 
   const merchantAccountInfo = emvField('00', 'BR.GOV.BCB.PIX') + emvField('01', sanitizedKey);

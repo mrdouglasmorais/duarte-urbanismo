@@ -1,6 +1,12 @@
-import type { SgciState } from '@/types/sgci';
+const { MongoClient } = require('mongodb');
+const fs = require('fs');
+const path = require('path');
 
-const seedData: SgciState = {
+const uri = 'mongodb+srv://douglasmorais_db_user:uPcxoUQNHF7ZAINH@duarteurbanismo.spqlzyp.mongodb.net/?appName=DuarteUrbanismo&retryWrites=true&w=majority';
+const dbName = 'duarte-urbanismo';
+
+// Seed data simplificado
+const seedData = {
   empreendimentos: [
     {
       id: 'por-do-sol-lote-01',
@@ -37,8 +43,8 @@ const seedData: SgciState = {
       telefone: '48 98888-1200',
       contatoSecundario: 'Eduardo Martinez',
       referencias: 'Banco Aurora',
-      cep: '88034-200',
-      endereco: 'Rua das Bromélias, 102 - Florianópolis/SC'
+      endereco: 'Rua das Bromélias, 102 - Florianópolis/SC',
+      cep: '88000-000'
     },
     {
       id: 'cli-aurora-holdings',
@@ -48,8 +54,8 @@ const seedData: SgciState = {
       email: 'financeiro@auroraholdings.com',
       telefone: '48 4000-3010',
       contatoSecundario: 'Thiago Monteiro',
-      cep: '88015-700',
-      endereco: 'Av. Beira-Mar Norte, 1800 - Florianópolis/SC'
+      endereco: 'Av. Beira-Mar Norte, 1800 - Florianópolis/SC',
+      cep: '88015-700'
     }
   ],
   negociacoes: [
@@ -63,8 +69,7 @@ const seedData: SgciState = {
       metragem: 1200,
       valorContrato: 870000,
       qtdParcelas: 36,
-      descricao:
-        'Contrato fechado para residência unifamiliar de alto padrão. Financiamento interno com correção IPCA + 0,85% a.m. Permutas incorporadas ao fluxo.',
+      descricao: 'Contrato fechado para residência unifamiliar de alto padrão.',
       permuta: {
         tipo: 'Veículo',
         valor: 150000,
@@ -109,74 +114,9 @@ const seedData: SgciState = {
           reciboShareUrl: 'https://duarte-urbanismo.vercel.app/recibos/share/b1ad3a6f-93d8-4fae-948d-dceb8590b47e',
           reciboNumero: 'NEG-AURORA-PAR-003',
           reciboEmitidoEm: '2024-04-11'
-        },
-        {
-          id: 'par-aurora-004',
-          numero: 4,
-          valor: 20000,
-          vencimento: '2024-05-10',
-          status: 'Pendente'
-        },
-        {
-          id: 'par-aurora-005',
-          numero: 5,
-          valor: 20000,
-          vencimento: '2024-06-10',
-          status: 'Pendente'
-        },
-        {
-          id: 'par-aurora-006',
-          numero: 6,
-          valor: 20000,
-          vencimento: '2024-07-10',
-          status: 'Pendente'
         }
       ],
       criadoEm: '2024-01-15'
-    },
-    {
-      id: 'neg-bosque-lote-02',
-      clienteId: 'cli-aurora-holdings',
-      unidadeId: 'por-do-sol-lote-02',
-      corretorId: 'cor-juliana-santos',
-      fase: 'Fundação',
-      numeroLote: 'Lote 02',
-      metragem: 980,
-      valorContrato: 610000,
-      qtdParcelas: 48,
-      descricao:
-        'Negociação corporativa para implantação de residência modelo. Permuta com sala comercial e cronograma flexível em 48 parcelas.',
-      permuta: {
-        tipo: 'Imóvel',
-        valor: 320000,
-        descricao: 'Sala comercial Classe A no centro de Florianópolis'
-      },
-      permutaLista: [
-        { tipo: 'Imóvel', valor: 320000, descricao: 'Sala comercial Classe A no centro de Florianópolis' }
-      ],
-      status: 'Em andamento',
-      shareId: '61fda029-41b0-4b63-92f4-1a2fb4c69e6b',
-      parcelas: [
-        {
-          id: 'par-bosque-001',
-          numero: 1,
-          valor: 15000,
-          vencimento: '2024-02-20',
-          status: 'Paga',
-          reciboShareId: 'f79862dd-4108-4dde-8a07-f3f27154796a',
-          reciboShareUrl: 'https://duarte-urbanismo.vercel.app/recibos/share/f79862dd-4108-4dde-8a07-f3f27154796a',
-          reciboNumero: 'NEG-BOSQUE-PAR-001',
-          reciboEmitidoEm: '2024-02-21'
-        },
-        {
-          id: 'par-bosque-002',
-          numero: 2,
-          valor: 15000,
-          vencimento: '2024-03-20',
-          status: 'Pendente'
-        }
-      ],
-      criadoEm: '2024-02-02'
     }
   ],
   corretores: [
@@ -199,4 +139,63 @@ const seedData: SgciState = {
   ]
 };
 
-export default seedData;
+async function seedDatabase() {
+  console.log('🌱 Iniciando seed do banco de dados...');
+  const client = new MongoClient(uri, { serverSelectionTimeoutMS: 15000 });
+
+  try {
+    await client.connect();
+    console.log('✅ Conectado ao MongoDB');
+
+    const db = client.db(dbName);
+
+    // Limpar coleções existentes
+    console.log('🧹 Limpando coleções existentes...');
+    await Promise.all([
+      db.collection('sgci_empreendimentos').deleteMany({}),
+      db.collection('sgci_clientes').deleteMany({}),
+      db.collection('sgci_negociacoes').deleteMany({}),
+      db.collection('sgci_corretores').deleteMany({}),
+      db.collection('recibos').deleteMany({})
+    ]);
+    console.log('✅ Coleções limpas');
+
+    // Inserir dados
+    console.log('📝 Inserindo dados...');
+    await Promise.all([
+      db.collection('sgci_empreendimentos').insertMany(seedData.empreendimentos),
+      db.collection('sgci_clientes').insertMany(seedData.clientes),
+      db.collection('sgci_negociacoes').insertMany(seedData.negociacoes),
+      db.collection('sgci_corretores').insertMany(seedData.corretores)
+    ]);
+
+    console.log(`✅ ${seedData.empreendimentos.length} empreendimentos inseridos`);
+    console.log(`✅ ${seedData.clientes.length} clientes inseridos`);
+    console.log(`✅ ${seedData.negociacoes.length} negociações inseridas`);
+    console.log(`✅ ${seedData.corretores.length} corretores inseridos`);
+
+    // Verificar dados inseridos
+    const counts = await Promise.all([
+      db.collection('sgci_empreendimentos').countDocuments(),
+      db.collection('sgci_clientes').countDocuments(),
+      db.collection('sgci_negociacoes').countDocuments(),
+      db.collection('sgci_corretores').countDocuments()
+    ]);
+
+    console.log('\n📊 Resumo:');
+    console.log(`   Empreendimentos: ${counts[0]}`);
+    console.log(`   Clientes: ${counts[1]}`);
+    console.log(`   Negociações: ${counts[2]}`);
+    console.log(`   Corretores: ${counts[3]}`);
+
+    await client.close();
+    console.log('\n✅ Seed concluído com sucesso!');
+  } catch (error) {
+    console.error('❌ Erro ao executar seed:', error.message);
+    console.error(error.stack);
+    process.exit(1);
+  }
+}
+
+seedDatabase();
+

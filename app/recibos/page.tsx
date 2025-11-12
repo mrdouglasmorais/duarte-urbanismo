@@ -1,13 +1,12 @@
 'use client';
 
-import Image from 'next/image';
-import { useState } from 'react';
 import Logo from '@/components/Logo';
 import ReciboPreview from '@/components/ReciboPreview';
-import { EMISSOR_CNPJ, EMISSOR_NOME, EMPRESA_ENDERECO, EMPRESA_EMAIL, EMPRESA_TELEFONE } from '@/lib/constants';
+import { EMISSOR_CNPJ, EMISSOR_NOME, EMPRESA_CEP, EMPRESA_EMAIL, EMPRESA_ENDERECO, EMPRESA_TELEFONE } from '@/lib/constants';
 import { numeroParaExtenso } from '@/lib/utils';
-import { validarCampoTexto, validarCPFouCNPJ, validarData, validarEmail, validarTelefone, validarValor } from '@/lib/validators';
+import { validarCampoTexto, validarCEP, validarCPFouCNPJ, validarData, validarEmail, validarTelefone, validarValor } from '@/lib/validators';
 import { ReciboData, ReciboQrCodePayload } from '@/types/recibo';
+import { useState } from 'react';
 
 const heroHighlights = [
   { label: 'Área (m²)', value: '9.560' },
@@ -83,6 +82,7 @@ export default function Home() {
     formaPagamento: 'PIX',
     emitidoPor: EMISSOR_NOME,
     cpfEmitente: EMISSOR_CNPJ,
+    cepEmitente: EMPRESA_CEP,
     enderecoEmitente: EMPRESA_ENDERECO,
     telefoneEmitente: EMPRESA_TELEFONE,
     emailEmitente: EMPRESA_EMAIL
@@ -95,6 +95,8 @@ export default function Home() {
   const [valorDisplay, setValorDisplay] = useState<string>('');
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [shareLink, setShareLink] = useState<string | null>(null);
+  const [isCepLoading, setIsCepLoading] = useState(false);
+  const [cepStatus, setCepStatus] = useState<string | null>(null);
 
   const formatarValorBRL = (valor: string): string => {
     // Remove tudo que não é dígito
@@ -119,6 +121,122 @@ export default function Home() {
     // Remove pontos de milhar e substitui vírgula por ponto
     const numero = valorFormatado.replace(/\./g, '').replace(',', '.');
     return parseFloat(numero) || 0;
+  };
+
+  const maskCep = (value: string): string => {
+    const digits = value.replace(/\D/g, '').slice(0, 8);
+    if (digits.length <= 5) {
+      return digits;
+    }
+    return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  };
+
+  const handleCepChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const masked = maskCep(event.target.value);
+    setFormData(prev => ({
+      ...prev,
+      cepEmitente: masked
+    }));
+    setCepStatus(null);
+    setErrors(prev => {
+      if (!prev.cepEmitente) return prev;
+      const newErrors = { ...prev };
+      delete newErrors.cepEmitente;
+      return newErrors;
+    });
+  };
+
+  const consultarCep = async (masked: string, digits: string) => {
+    try {
+      setIsCepLoading(true);
+      setCepStatus('Consultando CEP...');
+      const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      if (!response.ok) {
+        throw new Error('Falha na consulta do CEP.');
+      }
+      const data = await response.json();
+
+      if (data.erro) {
+        setErrors(prev => ({ ...prev, cepEmitente: 'CEP não encontrado.' }));
+        setCepStatus('CEP não encontrado.');
+        return;
+      }
+
+      const parts = [data.logradouro, data.bairro, `${data.localidade} - ${data.uf}`].filter(Boolean);
+      const formattedAddress = parts.join(', ');
+
+      setFormData(prev => ({
+        ...prev,
+        cepEmitente: masked,
+        enderecoEmitente: formattedAddress || prev.enderecoEmitente
+      }));
+
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.cepEmitente;
+        if (formattedAddress) {
+          delete newErrors.enderecoEmitente;
+        }
+        return newErrors;
+      });
+
+      setCepStatus(formattedAddress ? 'Endereço preenchido automaticamente via ViaCEP.' : 'CEP válido.');
+    } catch (error) {
+      console.error('Erro ao consultar CEP:', error);
+      setErrors(prev => ({ ...prev, cepEmitente: 'Não foi possível consultar o CEP no momento.' }));
+      setCepStatus('Não foi possível consultar o CEP no momento.');
+    } finally {
+      setIsCepLoading(false);
+    }
+  };
+
+  const handleCepBlur = async (event: React.FocusEvent<HTMLInputElement>) => {
+    const masked = maskCep(event.target.value);
+    const digits = masked.replace(/\D/g, '');
+
+    setFormData(prev => ({
+      ...prev,
+      cepEmitente: masked
+    }));
+
+    const validationMessage = validateField('cepEmitente', masked);
+    if (validationMessage) {
+      setErrors(prev => ({ ...prev, cepEmitente: validationMessage }));
+      setCepStatus(null);
+      return;
+    }
+
+    if (digits.length !== 8) {
+      setCepStatus('Informe os 8 dígitos do CEP para consultar.');
+      return;
+    }
+
+    await consultarCep(masked, digits);
+  };
+
+  const handleCepLookupClick = async () => {
+    const masked = maskCep(formData.cepEmitente);
+    const digits = masked.replace(/\D/g, '');
+
+    setFormData(prev => ({
+      ...prev,
+      cepEmitente: masked
+    }));
+
+    const validationMessage = validateField('cepEmitente', masked);
+    if (validationMessage) {
+      setErrors(prev => ({ ...prev, cepEmitente: validationMessage }));
+      setCepStatus(null);
+      return;
+    }
+
+    if (digits.length !== 8) {
+      setErrors(prev => ({ ...prev, cepEmitente: 'CEP deve ter 8 dígitos' }));
+      setCepStatus('Informe os 8 dígitos do CEP para consultar.');
+      return;
+    }
+
+    await consultarCep(masked, digits);
   };
 
   const handleValorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -185,6 +303,10 @@ export default function Home() {
         const resultEmitente = validarCampoTexto(String(value), 'Nome do emitente');
         return resultEmitente.mensagem;
 
+      case 'cepEmitente':
+        const resultCep = validarCEP(String(value));
+        return resultCep.mensagem;
+
       case 'enderecoEmitente':
         const resultEndereco = validarCampoTexto(String(value), 'Endereço', 10);
         return resultEndereco.mensagem;
@@ -196,6 +318,11 @@ export default function Home() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+
+    if (name === 'cepEmitente') {
+      handleCepChange(e as React.ChangeEvent<HTMLInputElement>);
+      return;
+    }
 
     if (name === 'emitidoPor' || name === 'cpfEmitente') {
       return;
@@ -225,7 +352,7 @@ export default function Home() {
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    const error = validateField(name as keyof ReciboData, value);
+    const error = validateField(name as keyof ReciboData, value || '');
     if (error) {
       setErrors(prev => ({ ...prev, [name]: error }));
     }
@@ -241,6 +368,7 @@ export default function Home() {
       'data',
       'emitidoPor',
       'cpfEmitente',
+      'cepEmitente',
       'enderecoEmitente',
       'telefoneEmitente',
       'emailEmitente'
@@ -625,6 +753,48 @@ export default function Home() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
+                          CEP *
+                        </label>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <input
+                            type="text"
+                            name="cepEmitente"
+                            value={formData.cepEmitente}
+                            onChange={handleCepChange}
+                            onBlur={handleCepBlur}
+                            placeholder="00000-000"
+                            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 text-slate-900 bg-white/60 ${errors.cepEmitente ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 focus:ring-slate-600'
+                              }`}
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={handleCepLookupClick}
+                            disabled={isCepLoading}
+                            className="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 px-4 py-3 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                          >
+                            {isCepLoading ? 'Consultando...' : 'Buscar CEP'}
+                          </button>
+                        </div>
+                        {errors.cepEmitente && (
+                          <p className="text-xs text-red-600 mt-1">{errors.cepEmitente}</p>
+                        )}
+                        {!errors.cepEmitente && cepStatus && (
+                          <p
+                            className={`text-xs mt-1 ${cepStatus.toLowerCase().includes('não') || cepStatus.toLowerCase().includes('informe')
+                              ? 'text-amber-600'
+                              : cepStatus.toLowerCase().includes('consultando')
+                                ? 'text-slate-500'
+                                : 'text-emerald-600'
+                              }`}
+                          >
+                            {cepStatus}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
                           Endereço *
                         </label>
                         <input
@@ -721,7 +891,12 @@ export default function Home() {
                       <span className="section-label text-white/60">Preview</span>
                     </div>
                     <div className="overflow-auto max-h-[calc(100vh-12rem)] bg-white/85">
-                      <ReciboPreview data={formData} qrCodeData={qrCodeData} />
+                      <ReciboPreview
+                        data={formData}
+                        qrCodeData={qrCodeData}
+                        onPrint={() => window.print()}
+                        onGeneratePDF={handleGeneratePDF}
+                      />
                     </div>
                   </div>
                 ) : (

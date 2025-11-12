@@ -2,8 +2,9 @@
 
 import { useAuth } from "@/contexts/auth-context";
 import { useSgci } from "@/contexts/sgci-context";
-import { EMISSOR_CNPJ, EMISSOR_NOME, EMPRESA_EMAIL, EMPRESA_ENDERECO, EMPRESA_TELEFONE } from "@/lib/constants";
+import { BANCO_AGENCIA, BANCO_CONTA, BANCO_NOME, BANCO_TIPO_CONTA, EMISSOR_CNPJ, EMISSOR_NOME, EMPRESA_CEP, EMPRESA_EMAIL, EMPRESA_ENDERECO, EMPRESA_TELEFONE } from "@/lib/constants";
 import { buildStaticPixPayload, DEFAULT_PIX_KEY } from "@/lib/pix";
+import { formatarData, numeroParaExtenso } from "@/lib/utils";
 import type { ReciboData } from "@/types/recibo";
 import type { Negociacao, Parcela, ParcelaStatus } from "@/types/sgci";
 import Link from "next/link";
@@ -176,125 +177,302 @@ export default function NegociacoesPage() {
   };
 
   const handleGerarReciboParcela = async (negociacao: Negociacao, parcela: Parcela, parcelaIndex: number) => {
-    const cliente = clientes.find(item => item.id === negociacao.clienteId);
-    if (!cliente) {
-      setMensagem("Cadastre o cliente para emitir recibos desta negociação.");
-      return;
-    }
-    if (!cliente.documento) {
-      setMensagem("O cliente precisa ter CPF ou CNPJ cadastrado para gerar recibos.");
-      return;
-    }
-    if (parcela.valor <= 0) {
-      setMensagem("Informe um valor válido para a parcela antes de gerar o recibo.");
-      return;
-    }
-    if (!parcela.vencimento) {
-      setMensagem("Defina a data de vencimento da parcela para gerar o recibo.");
-      return;
-    }
+    try {
+      if (!negociacao || !parcela) {
+        setMensagem("Dados da negociação ou parcela inválidos.");
+        return;
+      }
 
-    const unidade = empreendimentos.find(item => item.id === negociacao.unidadeId);
-    const corretor = negociacao.corretorId ? corretores.find(item => item.id === negociacao.corretorId) : undefined;
-    const identificador = negociacao.id.split("-").pop()?.toUpperCase() ?? negociacao.id.toUpperCase();
-    const numeroRecibo = `NEG-${identificador}-PAR-${String(parcelaIndex + 1).padStart(3, "0")}`;
-    const totalParcelasPlanejado = (negociacao.qtdParcelas ?? negociacao.parcelas.length) || parcelaIndex + 1;
-    const permutasDescricao =
-      negociacao.permutaLista && negociacao.permutaLista.length > 0
-        ? negociacao.permutaLista
-          .map(item => `${item.tipo} (${currencyFormatter.format(item.valor ?? 0)})`)
-          .join(", ")
+      if (!clientes || !Array.isArray(clientes)) {
+        setMensagem("Erro ao carregar lista de clientes.");
+        return;
+      }
+
+      const cliente = clientes.find(item => item && item.id === negociacao.clienteId);
+      if (!cliente) {
+        setMensagem("Cadastre o cliente para emitir recibos desta negociação.");
+        return;
+      }
+      if (!cliente.documento || typeof cliente.documento !== 'string' || cliente.documento.trim().length === 0) {
+        setMensagem("O cliente precisa ter CPF ou CNPJ cadastrado para gerar recibos.");
+        return;
+      }
+      if (!parcela.valor || typeof parcela.valor !== 'number' || parcela.valor <= 0 || !isFinite(parcela.valor)) {
+        setMensagem("Informe um valor válido para a parcela antes de gerar o recibo.");
+        return;
+      }
+      if (!parcela.vencimento || typeof parcela.vencimento !== 'string' || parcela.vencimento.trim().length === 0) {
+        setMensagem("Defina a data de vencimento da parcela para gerar o recibo.");
+        return;
+      }
+
+      const unidade = empreendimentos.find(item => item && item.id === negociacao.unidadeId);
+      const corretor = negociacao.corretorId ? corretores.find(item => item && item.id === negociacao.corretorId) : undefined;
+      const identificador = negociacao.id.split("-").pop()?.toUpperCase() ?? negociacao.id.toUpperCase();
+      const numeroRecibo = `NEG-${identificador}-PAR-${String(parcelaIndex + 1).padStart(3, "0")}`;
+      const totalParcelasPlanejado = (negociacao.qtdParcelas ?? negociacao.parcelas.length) || parcelaIndex + 1;
+      const permutasDescricao =
+        negociacao.permutaLista && negociacao.permutaLista.length > 0
+          ? negociacao.permutaLista
+            .map(item => `${item.tipo} (${currencyFormatter.format(item.valor ?? 0)})`)
+            .join(", ")
+          : undefined;
+
+      const referentePartes = [
+        unidade ? `${unidade.nome}${unidade.unidade ? ` · ${unidade.unidade}` : ""}` : null,
+        negociacao.numeroLote ? `Lote ${negociacao.numeroLote}` : null,
+        negociacao.metragem ? `${negociacao.metragem} m²` : null,
+        `Parcela ${parcelaIndex + 1} de ${totalParcelasPlanejado}`,
+        negociacao.fase ? `Fase ${negociacao.fase}` : null,
+        `Status: ${negociacao.status}`,
+        permutasDescricao ? `Permutas integradas: ${permutasDescricao}` : null,
+        corretor ? `Corretor: ${corretor.nome} · CRECI ${corretor.creci}` : null
+      ].filter(Boolean) as string[];
+
+      const referenteDescricao = `${referentePartes.length > 0 ? referentePartes.join(" | ") : `Parcela ${parcelaIndex + 1} do contrato imobiliário`
+        } • Condições financeiras com correção IPCA + 0,85% a.m. direto com a incorporadora.`;
+
+      const payload: ReciboData = {
+        numero: numeroRecibo,
+        valor: parcela.valor,
+        valorExtenso: numeroParaExtenso(parcela.valor),
+        recebidoDe: cliente.nome,
+        cpfCnpj: cliente.documento,
+        referente: referenteDescricao,
+        data: parcela.vencimento, // Data de pagamento/vencimento
+        dataEmissao: new Date().toISOString().split('T')[0], // Data de emissão do recibo
+        formaPagamento: `Parcelamento direto · Parcela ${parcelaIndex + 1}/${totalParcelasPlanejado}`,
+        emitidoPor: EMISSOR_NOME,
+        emitidoPorNome: user?.nome, // Nome do usuário que emitiu
+        cpfEmitente: EMISSOR_CNPJ,
+        cepEmitente: EMPRESA_CEP,
+        enderecoEmitente: EMPRESA_ENDERECO,
+        telefoneEmitente: EMPRESA_TELEFONE,
+        emailEmitente: EMPRESA_EMAIL,
+        // Informações do empreendimento
+        empreendimentoNome: unidade?.nome,
+        empreendimentoUnidade: unidade?.unidade,
+        empreendimentoMetragem: negociacao.metragem ?? unidade?.metragem,
+        empreendimentoFase: negociacao.fase,
+        // Informações do lote
+        numeroLote: negociacao.numeroLote,
+        // Informações da parcela
+        numeroParcela: parcelaIndex + 1,
+        totalParcelas: totalParcelasPlanejado,
+        // Informações do corretor
+        corretorNome: corretor?.nome,
+        corretorCreci: corretor?.creci,
+        // Status da parcela
+        status: parcela.status,
+        // Se está em aberto (Pendente), conta para crédito
+        contaParaCredito: parcela.status === "Pendente",
+        // Informações bancárias (apenas para recibos pendentes)
+        ...(parcela.status === "Pendente" ? {
+          bancoNome: BANCO_NOME,
+          bancoAgencia: BANCO_AGENCIA,
+          bancoConta: BANCO_CONTA,
+          bancoTipoConta: BANCO_TIPO_CONTA
+        } : {})
+      };
+
+      const pixKey = DEFAULT_PIX_KEY;
+      const qrOptions = parcela.status !== "Paga"
+        ? {
+          pixKey,
+          pixPayload: buildStaticPixPayload({
+            key: pixKey,
+            amount: parcela.valor,
+            merchantName: EMISSOR_NOME,
+            merchantCity: "Florianopolis",
+            txId: numeroRecibo.length > 25 ? numeroRecibo.slice(-25) : numeroRecibo.padStart(25, '0')
+          })
+        }
         : undefined;
 
-    const referentePartes = [
-      unidade ? `${unidade.nome}${unidade.unidade ? ` · ${unidade.unidade}` : ""}` : null,
-      negociacao.numeroLote ? `Lote ${negociacao.numeroLote}` : null,
-      negociacao.metragem ? `${negociacao.metragem} m²` : null,
-      `Parcela ${parcelaIndex + 1} de ${totalParcelasPlanejado}`,
-      negociacao.fase ? `Fase ${negociacao.fase}` : null,
-      `Status: ${negociacao.status}`,
-      permutasDescricao ? `Permutas integradas: ${permutasDescricao}` : null,
-      corretor ? `Corretor: ${corretor.nome} · CRECI ${corretor.creci}` : null
-    ].filter(Boolean) as string[];
-
-    const referenteDescricao = `${referentePartes.length > 0 ? referentePartes.join(" | ") : `Parcela ${parcelaIndex + 1} do contrato imobiliário`
-      } • Condições financeiras com correção IPCA + 0,85% a.m. direto com a incorporadora.`;
-
-    const payload: ReciboData = {
-      numero: numeroRecibo,
-      valor: parcela.valor,
-      valorExtenso: "",
-      recebidoDe: cliente.nome,
-      cpfCnpj: cliente.documento,
-      referente: referenteDescricao,
-      data: parcela.vencimento,
-      formaPagamento: `Parcelamento direto · Parcela ${parcelaIndex + 1}/${totalParcelasPlanejado}`,
-      emitidoPor: EMISSOR_NOME,
-      cpfEmitente: EMISSOR_CNPJ,
-      enderecoEmitente: EMPRESA_ENDERECO,
-      telefoneEmitente: EMPRESA_TELEFONE,
-      emailEmitente: EMPRESA_EMAIL
-    };
-
-    const pixKey = DEFAULT_PIX_KEY;
-    const qrOptions = parcela.status !== "Paga"
-      ? {
-        pixKey,
-        pixPayload: buildStaticPixPayload({
-          key: pixKey,
-          amount: parcela.valor,
-          merchantName: EMISSOR_NOME,
-          merchantCity: "Florianopolis",
-          txId: numeroRecibo.slice(-25)
-        })
+      if (qrOptions?.pixPayload) {
+        payload.pixPayload = qrOptions.pixPayload;
+        payload.pixKey = qrOptions.pixKey;
       }
-      : undefined;
-
-    if (qrOptions?.pixPayload) {
-      payload.pixPayload = qrOptions.pixPayload;
-      payload.pixKey = qrOptions.pixKey;
-    }
-
-    try {
       setReciboLoadingId(parcela.id);
       setMensagem(null);
-      const response = await fetch("/api/gerar-pdf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, qrOptions })
-      });
+
+      let response: Response;
+      try {
+        response = await fetch("/api/gerar-pdf", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payload, qrOptions })
+        });
+      } catch (fetchError) {
+        console.error("Erro de rede ao fazer requisição:", fetchError);
+        throw new Error(`Erro de conexão: ${fetchError instanceof Error ? fetchError.message : 'Não foi possível conectar ao servidor'}`);
+      }
 
       if (!response.ok) {
-        const errorBody = await response.json().catch(() => null);
-        throw new Error(errorBody?.error ?? "Não foi possível gerar o recibo.");
+        let errorBody: any = null;
+        let errorText = '';
+        const contentType = response.headers.get('content-type');
+        const responseStatus = response.status;
+        const responseStatusText = response.statusText;
+
+        try {
+          // Clonar resposta ANTES de tentar ler (para poder ler múltiplas vezes se necessário)
+          const clonedResponse = response.clone();
+
+          // Tentar ler como texto primeiro (mais seguro)
+          try {
+            errorText = await clonedResponse.text();
+
+            if (errorText && errorText.trim().length > 0) {
+              // Tentar parsear como JSON
+              if (contentType?.includes('application/json')) {
+                try {
+                  errorBody = JSON.parse(errorText);
+                } catch (parseError) {
+                  // Se não for JSON válido, manter como texto
+                  errorBody = { rawText: errorText, parseError: parseError instanceof Error ? parseError.message : String(parseError) };
+                }
+              } else {
+                // Se não for JSON, tentar parsear mesmo assim
+                try {
+                  errorBody = JSON.parse(errorText);
+                } catch {
+                  errorBody = { rawText: errorText };
+                }
+              }
+            } else {
+              errorBody = { empty: true, contentType: contentType || 'unknown' };
+              errorText = '(Resposta vazia)';
+            }
+          } catch (textError) {
+            console.error("Erro ao ler resposta como texto:", textError);
+            errorText = `Erro ao ler resposta: ${textError instanceof Error ? textError.message : String(textError)}`;
+            errorBody = {
+              readError: errorText,
+              errorType: textError instanceof Error ? textError.name : 'UnknownError'
+            };
+          }
+        } catch (readError) {
+          console.error("Erro geral ao processar resposta:", readError);
+          errorText = `Erro ao processar resposta: ${readError instanceof Error ? readError.message : String(readError)}`;
+          errorBody = {
+            readError: errorText,
+            errorType: readError instanceof Error ? readError.name : 'UnknownError',
+            errorStack: readError instanceof Error ? readError.stack : undefined
+          };
+        }
+
+        // Construir mensagem de erro detalhada
+        const errorMessageParts: string[] = [];
+
+        // Adicionar informações do erro em ordem de prioridade
+        if (errorBody?.error) {
+          errorMessageParts.push(`Erro: ${String(errorBody.error)}`);
+        }
+        if (errorBody?.errorType) {
+          errorMessageParts.push(`Tipo: ${String(errorBody.errorType)}`);
+        }
+        if (errorBody?.errorString) {
+          errorMessageParts.push(`String: ${String(errorBody.errorString)}`);
+        }
+        if (errorBody?.message) {
+          errorMessageParts.push(`Mensagem: ${String(errorBody.message)}`);
+        }
+        if (Array.isArray(errorBody?.errors) && errorBody.errors.length > 0) {
+          errorMessageParts.push(`Validações: ${errorBody.errors.join(", ")}`);
+        }
+        if (errorBody?.rawText) {
+          const rawTextPreview = String(errorBody.rawText).substring(0, 200);
+          errorMessageParts.push(`Resposta: ${rawTextPreview}${rawTextPreview.length >= 200 ? '...' : ''}`);
+        }
+        if (errorBody?.readError) {
+          errorMessageParts.push(`Erro de leitura: ${String(errorBody.readError)}`);
+        }
+        if (errorBody?.empty) {
+          errorMessageParts.push('Resposta vazia do servidor');
+        }
+
+        // Se não encontrou nenhuma mensagem específica, usar informações básicas
+        if (errorMessageParts.length === 0) {
+          errorMessageParts.push(`Erro HTTP ${responseStatus}: ${responseStatusText || 'Erro desconhecido'}`);
+          if (errorText && errorText !== '(Resposta vazia)') {
+            const preview = errorText.substring(0, 200);
+            errorMessageParts.push(`Detalhes: ${preview}${preview.length >= 200 ? '...' : ''}`);
+          }
+        }
+
+        const errorMessage = errorMessageParts.join(" | ");
+
+        // Log detalhado com informações serializáveis
+        const errorDetails = {
+          status: responseStatus,
+          statusText: responseStatusText,
+          contentType: contentType || '(não especificado)',
+          errorBody: errorBody ? (typeof errorBody === 'object' ? JSON.stringify(errorBody, null, 2) : String(errorBody)) : '(null)',
+          errorText: errorText || '(vazio)',
+          url: response.url || '(não disponível)',
+          ok: response.ok,
+          redirected: response.redirected,
+          type: response.type,
+          headers: Object.fromEntries(response.headers.entries()),
+          timestamp: new Date().toISOString()
+        };
+
+        console.error("Erro ao gerar recibo - Detalhes completos:", errorDetails);
+
+        // Log adicional para debug
+        console.error("Erro ao gerar recibo - Raw response:", {
+          status: responseStatus,
+          statusText: responseStatusText,
+          contentType,
+          hasBody: !!errorBody,
+          bodyType: errorBody ? typeof errorBody : 'null',
+          textLength: errorText?.length || 0
+        });
+
+        throw new Error(errorMessage);
       }
 
       const shareId = response.headers.get("x-recibo-share-id") ?? undefined;
       const shareUrl = response.headers.get("x-recibo-share-url") ?? undefined;
 
       if (shareId) {
-        registrarReciboParcela(negociacao.id, parcela.id, {
-          shareId,
-          shareUrl,
-          numero: payload.numero,
-          emitidoEm: payload.data
-        });
+        try {
+          registrarReciboParcela(negociacao.id, parcela.id, {
+            shareId,
+            shareUrl,
+            numero: payload.numero,
+            emitidoEm: payload.data
+          });
+        } catch (error) {
+          console.error('Erro ao registrar recibo:', error);
+          // Não bloqueia o fluxo se o registro falhar
+        }
       }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `recibo-${payload.numero}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      try {
+        const blob = await response.blob();
+        if (!blob || blob.size === 0) {
+          throw new Error('PDF vazio recebido');
+        }
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `recibo-${payload.numero || 'recibo'}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (blobError) {
+        console.error('Erro ao processar PDF:', blobError);
+        throw new Error('Erro ao processar arquivo PDF');
+      }
 
       setMensagem("Recibo gerado com sucesso. O link público já está disponível na parcela.");
     } catch (error) {
-      console.error(error);
-      setMensagem("Não foi possível gerar o recibo desta parcela.");
+      console.error('Erro ao gerar recibo:', error);
+      const errorMessage = error instanceof Error ? error.message : "Não foi possível gerar o recibo desta parcela.";
+      setMensagem(errorMessage);
     } finally {
       setReciboLoadingId(null);
     }
@@ -331,7 +509,7 @@ export default function NegociacoesPage() {
           totalParcelas: negociacao.parcelas.length,
           totalPago,
           totalParcelado,
-          proximaParcela: negociacao.parcelas.find(parcela => parcela.status === "Pendente")?.vencimento ?? "—"
+          proximaParcela: negociacao.parcelas.find(parcela => parcela.status === "Pendente")?.vencimento ? formatarData(negociacao.parcelas.find(parcela => parcela.status === "Pendente")!.vencimento) : "—"
         };
       }),
     [negociacoes]
@@ -902,7 +1080,7 @@ export default function NegociacoesPage() {
                       {proximosPagamentos.length > 0 && (
                         <p className="mt-3 text-xs text-slate-500">
                           Próximos pagamentos: {proximosPagamentos
-                            .map(parcela => `${parcela.vencimento} (${parcela.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})`)
+                            .map(parcela => `${formatarData(parcela.vencimento)} (${parcela.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})`)
                             .join(" · ")}
                         </p>
                       )}
@@ -929,7 +1107,7 @@ export default function NegociacoesPage() {
                                 <td className="py-2">
                                   {parcela.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                                 </td>
-                                <td className="py-2">{parcela.vencimento}</td>
+                                <td className="py-2">{formatarData(parcela.vencimento)}</td>
                                 <td className="py-2">
                                   <span
                                     className={`rounded-full px-3 py-1 text-xs font-semibold ${parcela.status === "Paga"
@@ -1128,7 +1306,7 @@ export default function NegociacoesPage() {
                         {" "}
                         {totalPendente.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                         {proximaParcela
-                          ? ` · Próximo vencimento em ${proximaParcela.vencimento}`
+                          ? ` · Próximo vencimento em ${formatarData(proximaParcela.vencimento)}`
                           : " · Todas as parcelas foram quitadas."}
                       </p>
                       {corretor && (
@@ -1157,7 +1335,7 @@ export default function NegociacoesPage() {
                               <td className="py-2">
                                 {parcela.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                               </td>
-                              <td className="py-2">{parcela.vencimento}</td>
+                              <td className="py-2">{formatarData(parcela.vencimento)}</td>
                               <td className="py-2">
                                 <span
                                   className={`rounded-full px-3 py-1 text-xs font-semibold ${parcela.status === "Paga"

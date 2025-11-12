@@ -4,4 +4,15 @@ export const EMPRESA_ENDERECO =
   'Rua José Antonio da Silva, 152 · Sala 03, Escritório 81, Centro · São João Batista/SC · CEP 88.240-000';
 export const EMPRESA_TELEFONE = '+55 47 9211-2284';
 export const EMPRESA_EMAIL = 'contato@duarteurbanismo.com';
+export const EMPRESA_CEP = '88240-000';
+
+// Informações bancárias para pagamento
+export const BANCO_NOME = 'Banco';
+export const BANCO_AGENCIA = '0000';
+export const BANCO_CONTA = '00000-0';
+export const BANCO_TIPO_CONTA = 'Corrente';
+export const PIX_CHAVE = '356.372.638-84';
+
+export const APP_BASE_URL = 'https://duarte-urbanismo.vercel.app';
+export const HASH_SECRET = 'DUARTE_URBANISMO_QR_LEDGER_2024';
 

@@ -1,5 +1,5 @@
 import type { ReciboSeedInput } from '@/lib/recibos-repository';
-import { EMISSOR_NOME, EMPRESA_ENDERECO, EMPRESA_TELEFONE, EMPRESA_EMAIL } from '@/lib/constants';
+import { EMISSOR_NOME, EMPRESA_ENDERECO, EMPRESA_TELEFONE, EMPRESA_EMAIL, EMPRESA_CEP } from '@/lib/constants';
 import { buildStaticPixPayload, DEFAULT_PIX_KEY } from '@/lib/pix';
 
 const MERCHANT_CITY = 'Florianopolis';
@@ -24,6 +24,7 @@ const reciboSeeds: ReciboSeedInput[] = [
       referente: 'Parcela 1 do lote Pôr do Sol Eco Village',
       data: '2024-02-10',
       formaPagamento: 'PIX',
+      cepEmitente: EMPRESA_CEP,
       enderecoEmitente: EMPRESA_ENDERECO,
       telefoneEmitente: EMPRESA_TELEFONE,
       emailEmitente: EMPRESA_EMAIL,
@@ -43,6 +44,7 @@ const reciboSeeds: ReciboSeedInput[] = [
       referente: 'Parcela 2 do lote Pôr do Sol Eco Village',
       data: '2024-03-10',
       formaPagamento: 'PIX',
+      cepEmitente: EMPRESA_CEP,
       enderecoEmitente: EMPRESA_ENDERECO,
       telefoneEmitente: EMPRESA_TELEFONE,
       emailEmitente: EMPRESA_EMAIL,
@@ -62,6 +64,7 @@ const reciboSeeds: ReciboSeedInput[] = [
       referente: 'Parcela 3 do lote Pôr do Sol Eco Village',
       data: '2024-04-10',
       formaPagamento: 'PIX',
+      cepEmitente: EMPRESA_CEP,
       enderecoEmitente: EMPRESA_ENDERECO,
       telefoneEmitente: EMPRESA_TELEFONE,
       emailEmitente: EMPRESA_EMAIL,
@@ -81,6 +84,7 @@ const reciboSeeds: ReciboSeedInput[] = [
       referente: 'Parcela 1 do lote Vista Verde Residencial',
       data: '2024-02-20',
       formaPagamento: 'PIX',
+      cepEmitente: EMPRESA_CEP,
       enderecoEmitente: EMPRESA_ENDERECO,
       telefoneEmitente: EMPRESA_TELEFONE,
       emailEmitente: EMPRESA_EMAIL,

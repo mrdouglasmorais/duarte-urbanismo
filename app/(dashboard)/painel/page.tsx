@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import PaymentOverviewCharts from "@/components/dashboard/PaymentOverviewCharts";
 import { useSgci } from "@/contexts/sgci-context";
+import { useMemo } from "react";
 
 const destaque = {
   titulo: "🌅 SUPER LANÇAMENTO: PÔR DO SOL ECO VILLAGE! 🌳",
@@ -28,18 +29,18 @@ export default function HomePage() {
   const { empreendimentos, clientes, negociacoes } = useSgci();
 
   const indicadores = useMemo(() => {
-    const unidadesDisponiveis = empreendimentos.filter(item => item.status === "Disponível").length;
-    const totalParcelas = negociacoes.reduce((acc, negociacao) => acc + negociacao.parcelas.length, 0);
+    const unidadesDisponiveis = empreendimentos.filter((item) => item.status === "Disponível").length;
+    const totalParcelas = negociacoes.reduce((acc: number, negociacao) => acc + negociacao.parcelas.length, 0);
     const parcelasPagas = negociacoes.reduce(
-      (acc, negociacao) => acc + negociacao.parcelas.filter(parcela => parcela.status === "Paga").length,
+      (acc: number, negociacao) => acc + negociacao.parcelas.filter((parcela) => parcela.status === "Paga").length,
       0
     );
     const totalInvestido = negociacoes.reduce(
-      (acc, negociacao) =>
+      (acc: number, negociacao) =>
         acc +
         negociacao.parcelas
-          .filter(parcela => parcela.status === "Paga")
-          .reduce((total, parcela) => total + parcela.valor, 0),
+          .filter((parcela) => parcela.status === "Paga")
+          .reduce((total: number, parcela) => total + parcela.valor, 0),
       0
     );
 
@@ -117,9 +118,21 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Gráficos de Overview */}
+      <section className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
+        <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Análise financeira</p>
+        <h2 className="mt-2 text-2xl font-semibold text-slate-900">Overview de Pagamentos</h2>
+        <p className="mt-4 text-sm text-slate-600">
+          Visualize pagamentos pendentes, corretores que realizaram vendas e o panorama de recebimentos.
+        </p>
+        <div className="mt-6">
+          <PaymentOverviewCharts />
+        </div>
+      </section>
+
       <section className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
         <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Visão geral</p>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-900">Fluxo operacional do S.G.C.I</h2>
+        <h2 className="mt-2 text-2xl font-semibold text-slate-900">Fluxo operacional</h2>
         <p className="mt-4 text-sm text-slate-600">
           Centralize cadastros de empreendimentos, clientes e negociações, monitore parcelas em tempo real e mantenha a
           rastreabilidade das decisões comerciais com segurança e usabilidade pensadas para equipes imobiliárias.

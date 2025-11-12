@@ -1,8 +1,9 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState, startTransition } from 'react';
+import { createContext, startTransition, useContext, useEffect, useMemo, useState } from 'react';
 
 interface User {
+  id: string;
   nome: string;
   email: string;
 }
@@ -22,27 +23,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const demoUser: User = {
-      nome: 'Carolina Duarte',
-      email: 'carolina.duarte@duarteurbanismo.com'
-    };
-
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
+    async function loadUser() {
       try {
-        const parsed: User = JSON.parse(stored);
-        startTransition(() => setUser(parsed));
-      } catch {
+        const response = await fetch('/api/auth/me', { credentials: 'same-origin' });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data.user));
+            startTransition(() => setUser(data.user));
+          } else {
+            localStorage.removeItem(STORAGE_KEY);
+            startTransition(() => setUser(null));
+          }
+        } else {
+          localStorage.removeItem(STORAGE_KEY);
+          startTransition(() => setUser(null));
+        }
+      } catch (error) {
+        console.error('Erro ao carregar usuário:', error);
         localStorage.removeItem(STORAGE_KEY);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(demoUser));
-        startTransition(() => setUser(demoUser));
+        startTransition(() => setUser(null));
+      } finally {
+        startTransition(() => setIsReady(true));
       }
-    } else {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(demoUser));
-      startTransition(() => setUser(demoUser));
     }
 
-    startTransition(() => setIsReady(true));
+    loadUser();
   }, []);
 
   const login = async (email: string, password: string) => {

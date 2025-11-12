@@ -65,3 +65,90 @@ h6 {
   font-weight: 600;
   color: rgba(16, 24, 40, 0.55);
 }
+
+/* Estilos de impressão para recibos */
+@media print {
+  @page {
+    margin: 0;
+    size: A4;
+  }
+
+  /* Ocultar tudo por padrão */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Mostrar apenas o container do recibo */
+  .recibo-container,
+  .recibo-container * {
+    visibility: visible !important;
+  }
+
+  /* Posicionar o recibo no topo da página */
+  .recibo-container {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 20px;
+    background: white !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    page-break-inside: avoid;
+  }
+
+  /* Ocultar elementos não essenciais */
+  .recibo-container button,
+  .no-print,
+  .no-print *,
+  nav,
+  header,
+  footer,
+  aside {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Remover wrapper do recibo na impressão */
+  .no-print-wrapper {
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  .no-print-wrapper .recibo-container {
+    border: none !important;
+    padding: 20px !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* Garantir que o conteúdo seja preto e branco */
+  .recibo-container {
+    color: black !important;
+    background: white !important;
+  }
+
+  /* Remover gradientes e efeitos visuais, mas manter estrutura */
+  .recibo-container [class*="bg-gradient"],
+  .recibo-container [class*="shadow"],
+  .recibo-container [class*="blur"] {
+    display: none !important;
+  }
+
+  /* Manter apenas bordas essenciais */
+  .recibo-container .border {
+    border-color: #000 !important;
+  }
+
+  /* Ocultar elementos da página que não são o recibo */
+  body>div:not(.recibo-container):not(:has(.recibo-container)) {
+    display: none !important;
+  }
+}

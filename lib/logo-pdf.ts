@@ -1,61 +1,91 @@
+import fs from 'fs';
 import { jsPDF } from 'jspdf';
+import path from 'path';
 
 export function drawLogoPDF(pdf: jsPDF, centerX: number, startY: number) {
-  // Ícone D com casa
+  try {
+    // Tentar carregar logo PNG
+    const logoPath = path.join(process.cwd(), 'public', 'logo_duarte_sem_fundo.png');
+    if (fs.existsSync(logoPath)) {
+      try {
+        const logoData = fs.readFileSync(logoPath);
+        if (!logoData || logoData.length === 0) {
+          throw new Error('Logo vazio');
+        }
+        const logoBase64 = `data:image/png;base64,${logoData.toString('base64')}`;
+
+        // Dimensões do logo (ajustar conforme necessário)
+        const logoWidth = 60;
+        const logoHeight = 20;
+        const logoX = centerX - logoWidth / 2;
+
+        pdf.addImage(logoBase64, 'PNG', logoX, startY, logoWidth, logoHeight);
+
+        // Texto abaixo do logo
+        let yPos = startY + logoHeight + 8;
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('DUARTE URBANISMO LTDA', centerX, yPos, { align: 'center' });
+
+        yPos += 5;
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text('CNPJ: 47.200.760/0001-06', centerX, yPos, { align: 'center' });
+
+        return yPos + 5;
+      } catch (fileError) {
+        console.warn('Erro ao processar logo PNG:', fileError);
+        throw fileError;
+      }
+    }
+  } catch (error) {
+    console.warn('Erro ao carregar logo PNG, usando logo SVG:', error);
+  }
+
+  // Fallback: Logo SVG (código original)
   const iconX = centerX;
   const iconY = startY;
   const radius = 8;
 
-  // Desenhar o D (semicírculo + retângulo)
   pdf.setFillColor(0, 0, 0);
   pdf.setDrawColor(0, 0, 0);
   pdf.setLineWidth(1);
 
-  // Semicírculo direito
   pdf.circle(iconX + 4, iconY, radius, 'F');
-
-  // Retângulo esquerdo do D
   pdf.rect(iconX - 4, iconY - radius, 8, radius * 2, 'F');
 
-  // Desenhar casa interna (branca)
   pdf.setFillColor(255, 255, 255);
 
-  // Telhado (triângulo)
   pdf.triangle(
-    iconX - 1.5, iconY + 2,  // ponto esquerdo
-    iconX + 1.5, iconY + 2,  // ponto direito
-    iconX, iconY - 2,        // ponto topo
+    iconX - 1.5, iconY + 2,
+    iconX + 1.5, iconY + 2,
+    iconX, iconY - 2,
     'F'
   );
 
-  // Base da casa (retângulo)
   pdf.rect(iconX - 1.5, iconY + 2, 3, 3, 'F');
 
-  // Texto DUARTE
   let yPos = startY + 30;
   pdf.setFontSize(36);
   pdf.setTextColor(0, 0, 0);
   pdf.setFont('helvetica', 'bold');
   pdf.text('DUARTE', centerX, yPos, { align: 'center' });
 
-  // Texto URBANISMO
   yPos += 10;
   pdf.setFontSize(14);
   pdf.setFont('helvetica', 'normal');
   pdf.text('URBANISMO', centerX, yPos, { align: 'center' });
 
-  // Texto DUARTE URBANISMO LTDA
   yPos += 8;
   pdf.setFontSize(9);
   pdf.setFont('helvetica', 'bold');
   pdf.text('DUARTE URBANISMO LTDA', centerX, yPos, { align: 'center' });
 
-  // Texto CNPJ
   yPos += 5;
   pdf.setFontSize(8);
   pdf.setFont('helvetica', 'normal');
   pdf.text('CNPJ: 47.200.760/0001-06', centerX, yPos, { align: 'center' });
 
-  return yPos + 5; // Retorna a posição Y final para continuar o documento
+  return yPos + 5;
 }
 

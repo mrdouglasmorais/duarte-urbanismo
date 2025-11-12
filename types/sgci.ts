@@ -21,6 +21,7 @@ export interface Cliente {
   contatoSecundario?: string;
   referencias?: string;
   observacoes?: string;
+  cep?: string;
   endereco: string;
 }
 
