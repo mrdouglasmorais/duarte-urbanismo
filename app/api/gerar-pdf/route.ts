@@ -1,21 +1,45 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { jsPDF } from 'jspdf';
-import QRCode from 'qrcode';
-import { ReciboData } from '@/types/recibo';
-import { formatarMoeda, formatarData, formatarCPFCNPJ } from '@/lib/utils';
+import { buildQrCodePayload, buildShareUrl, generateReciboHash } from '@/lib/authenticity';
 import { drawLogoPDF } from '@/lib/logo-pdf';
+import { sanitizeReciboData, validateReciboData } from '@/lib/recibos';
+import { saveRecibo } from '@/lib/recibos-repository';
+import { formatarCPFCNPJ, formatarData, formatarMoeda } from '@/lib/utils';
+import type { ReciboData } from '@/types/recibo';
+import { jsPDF } from 'jspdf';
+import { NextRequest, NextResponse } from 'next/server';
+import QRCode from 'qrcode';
+
+interface QrOptionsPayload {
+  pixPayload?: unknown;
+  pixKey?: unknown;
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const data: ReciboData = await request.json();
+    const raw = (await request.json()) as Record<string, unknown>;
+    const qrOptions = (raw?.qrOptions ?? {}) as QrOptionsPayload;
+    const pixPayload = typeof qrOptions?.pixPayload === 'string' ? qrOptions.pixPayload.trim() : undefined;
+    const pixKey = typeof qrOptions?.pixKey === 'string' ? qrOptions.pixKey.trim() : undefined;
+
+    const data = sanitizeReciboData(raw as ReciboData);
+    if (pixPayload) {
+      data.pixPayload = pixPayload;
+    }
+    if (pixKey) {
+      data.pixKey = pixKey;
+    }
+    const validationErrors = validateReciboData(data);
+
+    if (validationErrors.length > 0) {
+      return NextResponse.json({ errors: validationErrors }, { status: 400 });
+    }
+
+    const hash = generateReciboHash(data);
+    const origin = request.headers.get('origin') ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+    const { shareId } = await saveRecibo(data, hash);
+    const qrPayload = buildQrCodePayload(data, hash, origin, shareId, { pixPayload, pixKey });
 
     // Gerar QR Code
-    const qrCodeDataString = JSON.stringify({
-      numero: data.numero,
-      valor: data.valor,
-      data: data.data,
-      emitente: data.emitidoPor
-    });
+    const qrCodeDataString = JSON.stringify(qrPayload);
 
     const qrCodeDataUrl = await QRCode.toDataURL(qrCodeDataString, {
       width: 120,
@@ -157,7 +181,7 @@ export async function POST(request: NextRequest) {
     pdf.setFontSize(9);
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(80, 80, 80);
-    pdf.text(`CPF: ${formatarCPFCNPJ(data.cpfEmitente)}`, margin, yPos);
+    pdf.text(`Doc.: ${formatarCPFCNPJ(data.cpfEmitente)}`, margin, yPos);
 
     yPos += 5;
     pdf.text(data.enderecoEmitente, margin, yPos);
@@ -201,18 +225,23 @@ export async function POST(request: NextRequest) {
     // Gerar PDF como Buffer
     const pdfBuffer = Buffer.from(pdf.output('arraybuffer'));
 
-    return new NextResponse(pdfBuffer, {
+    const response = new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="recibo-${data.numero}.pdf"`
       }
     });
+
+    const shareUrl = buildShareUrl(shareId, origin);
+    response.headers.set('x-recibo-share-id', shareId);
+    response.headers.set('x-recibo-share-url', shareUrl);
+
+    return response;
   } catch (error) {
     console.error('Erro ao gerar PDF:', error);
     return NextResponse.json(
-      { error: 'Erro ao gerar PDF' },
+      { error: error instanceof Error ? error.message : 'Erro ao gerar PDF' },
       { status: 500 }
     );
   }
 }
-

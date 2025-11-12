@@ -1,33 +1,31 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Manrope, Playfair_Display } from 'next/font/google';
+import './globals.css';
+import { Providers } from '@/components/providers';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const manrope = Manrope({
+  subsets: ['latin'],
+  variable: '--font-manrope',
+  display: 'swap'
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  display: 'swap'
 });
 
 export const metadata: Metadata = {
-  title: "Gerador de Recibos - Duarte Urbanismo",
-  description: "Sistema profissional para geração de recibos em PDF com QR Code único",
+  title: 'S.G.C.I - Sistema de Gestão de Contratos Imobiliários',
+  description:
+    'Aplicação completa para gestão de empreendimentos, clientes, negociações e parcelas com foco em rastreabilidade.'
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${manrope.variable} ${playfair.variable} antialiased bg-slate-50 text-slate-900`}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

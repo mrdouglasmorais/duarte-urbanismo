@@ -12,12 +12,27 @@ export interface ReciboData {
   enderecoEmitente: string;
   telefoneEmitente: string;
   emailEmitente: string;
+  shareId?: string;
+  pixKey?: string;
+  pixPayload?: string;
 }
 
-export interface QRCodeData {
+export interface ReciboRecord extends ReciboData {
+  hash: string;
+  shareId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ReciboQrCodePayload {
   numero: string;
   valor: number;
   data: string;
+  emitente: string;
   hash: string;
+  verifyUrl: string;
+  shareUrl?: string;
+  pixKey?: string;
+  pixPayload?: string;
 }
 

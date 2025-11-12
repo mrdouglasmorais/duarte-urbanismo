@@ -1,121 +1,110 @@
-# 📄 Gerador de Recibos em PDF
+# 🏗️ S.G.C.I — Sistema de Gestão de Contratos Imobiliários
 
-Sistema completo para geração de recibos em PDF com QR Code único, desenvolvido em Next.js 14.
+Aplicação web em Next.js para administrar empreendimentos, clientes, negociações e o controle financeiro de contratos imobiliários. O foco está em usabilidade, segurança (rotas privadas) e rastreabilidade completa das decisões comerciais.
 
-## ✨ Funcionalidades
+## ✨ Principais recursos
 
-- ✅ Geração de recibos em PDF profissionais
-- ✅ QR Code único para autenticidade
-- ✅ Conversão automática de valores para extenso
-- ✅ Preview em tempo real do recibo
-- ✅ Interface moderna e responsiva
-- ✅ Formatação automática de CPF/CNPJ
-- ✅ Diversos métodos de pagamento
-- ✅ Design profissional e imprimível
+- 🔐 Autenticação por e-mail/senha com proteção de rotas (middleware + cookies httpOnly).
+- 🏡 Dashboard com o empreendimento destaque **Pôr do Sol Eco Village** e painel de indicadores em tempo real.
+- 📁 CRUD completo de empreendimentos/unidades (metragem, valor base, status Comercial).
+- 👥 CRUD completo de clientes (PF/PJ) com validação de CPF/CNPJ, e-mail e telefone.
+- 📝 Registro de negociações ligando cliente ↔ unidade, com descrição contratual e detalhamento de permutas.
+- 💰 Controle financeiro das parcelas: criação, status (Paga/Pendente), indicadores de parcelas pagas, montante recebido e próximo vencimento.
+- 🌐 Interface 100% em português, responsiva e com transições suaves entre rotas (Framer Motion).
 
-## 🚀 Tecnologias Utilizadas
+## 🚀 Tecnologias
 
-- **Next.js 14** - Framework React com App Router
-- **TypeScript** - Tipagem estática
-- **Tailwind CSS** - Estilização moderna
-- **jsPDF** - Geração de PDF
-- **QRCode** - Geração de QR Codes
-- **date-fns** - Manipulação de datas
+- **Next.js 16** (App Router) + **React 19**
+- **TypeScript**
+- **Tailwind CSS**
+- **Framer Motion** para transições
+- **date-fns** para formatação
+
+## 🔑 Acesso ao ambiente
+
+As rotas privadas exigem autenticação. Utilize as credenciais de demonstração:
+
+- **E-mail:** `gestor@sgci.com`
+- **Senha:** `123456`
+
+O login gera um cookie `sgci-auth` que libera o acesso ao dashboard. O logout limpa o cookie e redireciona para `/login`.
 
 ## 📦 Instalação
 
 ```bash
-# Instalar dependências
 npm install
-
-# Executar em modo de desenvolvimento
 npm run dev
-
-# Build para produção
-npm run build
-
-# Executar em produção
-npm start
 ```
 
-## 🎯 Como Usar
+> Observação: se estiver offline, pode ser necessário instalar as dependências manualmente quando a rede estiver disponível.
 
-1. Acesse `http://localhost:3000`
-2. Preencha o formulário com os dados do recibo:
-   - Número do recibo (gerado automaticamente)
-   - Data do recibo
-   - Valor (convertido automaticamente para extenso)
-   - Dados do pagador (nome e CPF/CNPJ)
-   - Descrição do serviço/produto
-   - Forma de pagamento
-   - Dados do emitente
-3. Clique em **"Visualizar"** para ver o preview
-4. Clique em **"Gerar PDF"** para fazer download do recibo
-
-## 📋 Estrutura do Projeto
+## 📁 Estrutura relevante
 
 ```
-duarte-urbanismo/
-├── app/
-│   ├── api/
-│   │   └── gerar-pdf/
-│   │       └── route.ts          # API para geração de PDF
-│   ├── page.tsx                  # Página principal com formulário
-│   ├── layout.tsx                # Layout raiz
-│   └── globals.css               # Estilos globais
-├── components/
-│   └── ReciboPreview.tsx         # Componente de preview do recibo
-├── lib/
-│   └── utils.ts                  # Funções utilitárias
-├── types/
-│   └── recibo.ts                 # Tipos TypeScript
-└── public/                       # Arquivos estáticos
+app/
+├── page.tsx                      # Landing pública do empreendimento Pôr do Sol
+├── recibos/page.tsx              # Gerador público de recibos com QR Code
+├── (auth)/login/page.tsx         # Página pública de login
+├── (dashboard)/painel/layout.tsx # Layout privado com cabeçalho/nav
+├── (dashboard)/painel/page.tsx   # Home do painel (indicadores internos)
+├── (dashboard)/painel/empreendimentos/page.tsx
+├── (dashboard)/painel/clientes/page.tsx
+├── (dashboard)/painel/corretores/page.tsx
+└── (dashboard)/painel/negociacoes/page.tsx
+app/api/auth                      # Rotas de login/logout (cookies httpOnly)
+app/api/recibos | gerar-pdf       # APIs públicas para validar/emitir recibos
+contexts/                         # Providers de autenticação e store do SGCI
+types/sgci.ts                     # Tipos de domínio (Empreendimento, Cliente, Corretor, Negociação etc.)
+middleware.ts                     # Restringe apenas rotas /painel
 ```
 
-## 🎨 Personalização
+## 🧱 Fluxo operacional
 
-### Alterar cores do recibo
+1. **Login** → usuário acessa `/login`, autentica-se e é redirecionado ao dashboard.
+2. **Empreendimentos** → cadastrar lotes/unidades com metragem, valor e status.
+3. **Clientes** → registrar PF/PJ com validação de CPF/CNPJ, contatos secundários e referências.
+4. **Corretores** → cadastrar CRECI, áreas de atuação e observações da equipe comercial.
+5. **Negociações** → escolher cliente + unidade, registrar termos, permutas e parcelas.
+6. **Financeiro** → adicionar parcelas, marcar pagamentos e acompanhar indicadores.
 
-Edite o arquivo `components/ReciboPreview.tsx` e `app/api/gerar-pdf/route.ts` para modificar as cores utilizadas no design do recibo.
+Todos os dados ficam persistidos em `localStorage`, garantindo continuidade entre sessões no mesmo navegador.
 
-### Adicionar campos personalizados
+## 📞 Dados corporativos
 
-1. Adicione o campo no tipo `ReciboData` em `types/recibo.ts`
-2. Adicione o input no formulário em `app/page.tsx`
-3. Atualize o componente `ReciboPreview.tsx`
-4. Atualize a API de geração em `app/api/gerar-pdf/route.ts`
+O rodapé exibe o endereço padrão:
 
-## 📱 Recursos do Recibo
-
-O recibo gerado inclui:
-
-- **Header profissional** com título destacado
-- **Box de valor** em destaque com conversão para extenso
-- **Dados do pagador** (nome e CPF/CNPJ)
-- **Descrição detalhada** do serviço/produto
-- **Forma de pagamento**
-- **Dados completos do emitente**
-- **QR Code único** para verificação
-- **Linha de assinatura**
-- **Nota de autenticidade** no rodapé
-
-## 🔐 QR Code
-
-O QR Code gerado contém:
-- Número do recibo
-- Valor
-- Data
-- Nome do emitente
-- Hash único para validação
-
-## 📄 Licença
-
-Este projeto é open source e está disponível sob a licença MIT.
-
-## 👨‍💻 Desenvolvimento
-
-Desenvolvido com ❤️ para Duarte Urbanismo
+```
+Rua José Antonio da Silva, 152 · Sala 03, Escritório 81, Centro
+São João Batista – SC · CEP 88.240-000 · Contato: +55 48 9669-6009
+```
 
 ## 🤝 Contribuições
 
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.
+Pull requests e sugestões são bem-vindos! Priorize manter a experiência em português, a responsividade e os fluxos descritos acima.
+
+## 🔐 QR Code e Autenticidade
+
+- O QR Code gerado contém o número do recibo, dados essenciais, hash único e URL de verificação.
+- Ao escanear, o usuário é direcionado para a API de verificação (`/api/recibos/{numero}`) que confirma a autenticidade no banco MongoDB.
+- Cada hash é gerado com algoritmo SHA-256 e pode ser reforçado com um `RECIBO_HASH_SECRET`.
+
+## 🗄️ Banco de Dados (MongoDB)
+
+- Todas as entidades do painel (`empreendimentos`, `clientes`, `negociações`, `corretores`) são persistidas no cluster configurado em `MONGODB_URI`.
+- O contexto do SGCI lê os dados via `GET /api/sgci/state` e sincroniza automaticamente cada alteração com o banco (`PUT /api/sgci/state`).
+- Para popular o ambiente com dados de demonstração, basta acionar:
+
+```bash
+curl -X POST http://localhost:3000/api/sgci/seed
+```
+
+(Substitua a porta se estiver executando o projeto em outra porta.)
+
+## 🔧 Configuração de Ambiente
+
+Crie um arquivo `.env.local` na raiz do projeto com as seguintes variáveis:
+
+```
+MONGODB_URI=mongodb://localhost:27017/sgci
+RECIBO_HASH_SECRET=your_secret_key_for_recibo_hash
+```

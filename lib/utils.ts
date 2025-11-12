@@ -1,60 +1,63 @@
 export function numeroParaExtenso(numero: number): string {
-  const unidades = [
-    '', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'
-  ];
-  const dezenaDez = [
-    'dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze',
-    'dezesseis', 'dezessete', 'dezoito', 'dezenove'
-  ];
-  const dezenas = [
-    '', '', 'vinte', 'trinta', 'quarenta', 'cinquenta',
-    'sessenta', 'setenta', 'oitenta', 'noventa'
-  ];
-  const centenas = [
-    '', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos',
-    'seiscentos', 'setecentos', 'oitocentos', 'novecentos'
-  ];
+  const unidades = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'];
+  const dezenaDez = ['dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+  const dezenas = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+  const centenas = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+  const escalaSingular = ['', 'mil', 'milhão', 'bilhão'];
+  const escalaPlural = ['', 'mil', 'milhões', 'bilhões'];
 
-  if (numero === 0) return 'zero reais';
-  if (numero === 100) return 'cem reais';
+  const valorAbsoluto = Math.max(0, numero || 0);
+  const reais = Math.floor(valorAbsoluto);
+  const centavos = Math.round((valorAbsoluto - reais) * 100);
 
-  const reais = Math.floor(numero);
-  const centavos = Math.round((numero - reais) * 100);
+  if (reais === 0 && centavos === 0) {
+    return 'zero reais';
+  }
 
-  let extenso = '';
+  const partes: string[] = [];
+  let restante = reais;
+  let escala = 0;
 
-  // Milhares
-  const milhares = Math.floor(reais / 1000);
-  const restoMilhares = reais % 1000;
-
-  if (milhares > 0) {
-    if (milhares === 1) {
-      extenso = 'mil';
-    } else {
-      extenso = converterCentenas(milhares) + ' mil';
+  while (restante > 0 && escala < escalaSingular.length) {
+    const grupo = restante % 1000;
+    if (grupo > 0) {
+      let texto = converterGrupo(grupo);
+      if (escala === 1) {
+        texto = grupo === 1 ? 'mil' : `${texto} mil`;
+      } else if (escala > 1) {
+        const sufixo = grupo === 1 ? escalaSingular[escala] : escalaPlural[escala];
+        texto = `${texto} ${sufixo}`;
+      }
+      partes.unshift(texto);
     }
+    restante = Math.floor(restante / 1000);
+    escala += 1;
   }
 
-  if (restoMilhares > 0) {
-    if (extenso !== '') extenso += ' ';
-    extenso += converterCentenas(restoMilhares);
-  }
+  const parteInteira =
+    partes.length === 0
+      ? 'zero'
+      : partes.length === 1
+        ? partes[0]
+        : `${partes.slice(0, -1).join(', ')} e ${partes[partes.length - 1]}`.replace(', e', ' e');
 
-  extenso += reais === 1 ? ' real' : ' reais';
+  let resultado = `${parteInteira} ${reais === 1 ? 'real' : 'reais'}`;
 
   if (centavos > 0) {
-    extenso += ' e ' + converterCentenas(centavos);
-    extenso += centavos === 1 ? ' centavo' : ' centavos';
+    const textoCentavos = converterGrupo(centavos);
+    resultado += ` e ${textoCentavos} ${centavos === 1 ? 'centavo' : 'centavos'}`;
   }
 
-  return extenso;
+  return resultado.trim();
 
-  function converterCentenas(num: number): string {
-    if (num === 0) return '';
+  function converterGrupo(num: number): string {
+    if (num === 0) return 'zero';
+    if (num === 100) return 'cem';
 
     const c = Math.floor(num / 100);
-    const d = Math.floor((num % 100) / 10);
-    const u = num % 10;
+    const resto = num % 100;
+    const d = Math.floor(resto / 10);
+    const u = resto % 10;
 
     let resultado = '';
 
@@ -62,35 +65,24 @@ export function numeroParaExtenso(numero: number): string {
       resultado = centenas[c];
     }
 
-    if (d === 1) {
-      if (resultado !== '') resultado += ' e ';
-      resultado += dezenaDez[u];
+    if (resto >= 10 && resto < 20) {
+      if (resultado) resultado += ' e ';
+      resultado += dezenaDez[resto - 10];
       return resultado;
     }
 
     if (d > 0) {
-      if (resultado !== '') resultado += ' e ';
+      if (resultado) resultado += ' e ';
       resultado += dezenas[d];
     }
 
     if (u > 0) {
-      if (resultado !== '' && d > 0) resultado += ' e ';
-      else if (resultado !== '') resultado += ' e ';
+      if (resultado) resultado += ' e ';
       resultado += unidades[u];
     }
 
-    return resultado;
+    return resultado || 'zero';
   }
-}
-
-export function gerarHash(dados: string): string {
-  let hash = 0;
-  for (let i = 0; i < dados.length; i++) {
-    const char = dados.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return Math.abs(hash).toString(16).toUpperCase();
 }
 
 export function formatarMoeda(valor: number): string {
@@ -122,4 +114,3 @@ export function formatarCPFCNPJ(valor: string): string {
 
   return valor;
 }
-
