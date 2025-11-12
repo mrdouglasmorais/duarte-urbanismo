@@ -36,9 +36,9 @@ export async function findReciboByNumero(numero: string): Promise<ReciboRecord |
   const collection = db.collection<ReciboRecord>(COLLECTION_NAME);
   const record = await collection.findOne({ numero });
   if (!record) return null;
-  const doc: Record<string, unknown> = { ...record };
-  delete doc._id;
-  return doc as ReciboRecord;
+  const { _id: _ignoredMongoId, ...rest } = record as ReciboRecord & { _id?: unknown };
+  void _ignoredMongoId;
+  return rest;
 }
 
 export async function findReciboByShareId(shareId: string): Promise<ReciboRecord | null> {
@@ -46,8 +46,8 @@ export async function findReciboByShareId(shareId: string): Promise<ReciboRecord
   const collection = db.collection<ReciboRecord>(COLLECTION_NAME);
   const record = await collection.findOne({ shareId });
   if (!record) return null;
-  const doc: Record<string, unknown> = { ...record };
-  delete doc._id;
-  return doc as ReciboRecord;
+  const { _id: _ignoredMongoId, ...rest } = record as ReciboRecord & { _id?: unknown };
+  void _ignoredMongoId;
+  return rest;
 }
 

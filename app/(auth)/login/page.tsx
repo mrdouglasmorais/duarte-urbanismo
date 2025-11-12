@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
 import { PageTransition } from '@/components/PageTransition';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, user, isReady } = useAuth();
@@ -89,5 +89,13 @@ export default function LoginPage() {
         </div>
       </PageTransition>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-900 text-white">Carregando...</div>}>
+      <LoginPageContent />
+    </Suspense>
   );
 }

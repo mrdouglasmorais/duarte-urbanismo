@@ -14,6 +14,12 @@ const statusOptions = ["Em prospecção", "Em andamento", "Aguardando aprovaçã
 const currencyFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const parcelasOptions = Array.from({ length: 8 }, (_, index) => (index + 1) * 12);
 
+type PermutaItemState = {
+  tipo: (typeof permutaTipos)[number];
+  valor: string;
+  descricao: string;
+};
+
 const formatCurrencyInputValue = (value: string) => {
   const digits = value.replace(/\D/g, "");
   if (!digits) return "";
@@ -32,7 +38,21 @@ const formatNumberToCurrency = (value?: number) => {
   return currencyFormatter.format(value);
 };
 
-const initialForm = {
+type NegociacaoFormState = {
+  clienteId: string;
+  unidadeId: string;
+  corretorId: string;
+  fase: string;
+  numeroLote: string;
+  metragem: string;
+  valorContrato: string;
+  qtdParcelas: string;
+  status: (typeof statusOptions)[number];
+  descricao: string;
+  permutaAtiva: boolean;
+};
+
+const initialForm: NegociacaoFormState = {
   clienteId: "",
   unidadeId: "",
   corretorId: "",
@@ -60,10 +80,12 @@ export default function NegociacoesPage() {
   } = useSgci();
   const { user } = useAuth();
 
-  const [form, setForm] = useState({ ...initialForm });
+  const [form, setForm] = useState<NegociacaoFormState>({ ...initialForm });
   const [mensagem, setMensagem] = useState<string | null>(null);
   const [parcelasForms, setParcelasForms] = useState<Record<string, { valor: string; vencimento: string }>>({});
-  const [permutaItens, setPermutaItens] = useState([{ tipo: permutaTipos[0], valor: "", descricao: "" }]);
+  const [permutaItens, setPermutaItens] = useState<PermutaItemState[]>([
+    { tipo: permutaTipos[0], valor: "", descricao: "" }
+  ]);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<"negociacoes" | "recibos">("negociacoes");
   const [reciboLoadingId, setReciboLoadingId] = useState<string | null>(null);
@@ -568,7 +590,12 @@ export default function NegociacoesPage() {
                 <label className="text-sm font-medium text-slate-700">Status da negociação</label>
                 <select
                   value={form.status}
-                  onChange={event => setForm(prev => ({ ...prev, status: event.target.value }))}
+                  onChange={event =>
+                    setForm(prev => ({
+                      ...prev,
+                      status: event.target.value as (typeof statusOptions)[number]
+                    }))
+                  }
                   className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3"
                 >
                   {statusOptions.map(status => (

@@ -247,7 +247,8 @@ export default function Home() {
     ];
 
     fieldsToValidate.forEach(field => {
-      const error = validateField(field, formData[field]);
+      const value = formData[field] ?? '';
+      const error = validateField(field, value as string | number);
       if (error) {
         newErrors[field] = error;
       }

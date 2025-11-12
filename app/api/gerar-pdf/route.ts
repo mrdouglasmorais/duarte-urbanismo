@@ -1,9 +1,9 @@
 import { buildQrCodePayload, buildShareUrl, generateReciboHash } from '@/lib/authenticity';
 import { drawLogoPDF } from '@/lib/logo-pdf';
+import type { ReciboPayload } from '@/lib/recibos';
 import { sanitizeReciboData, validateReciboData } from '@/lib/recibos';
 import { saveRecibo } from '@/lib/recibos-repository';
 import { formatarCPFCNPJ, formatarData, formatarMoeda } from '@/lib/utils';
-import type { ReciboData } from '@/types/recibo';
 import { jsPDF } from 'jspdf';
 import { NextRequest, NextResponse } from 'next/server';
 import QRCode from 'qrcode';
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const pixPayload = typeof qrOptions?.pixPayload === 'string' ? qrOptions.pixPayload.trim() : undefined;
     const pixKey = typeof qrOptions?.pixKey === 'string' ? qrOptions.pixKey.trim() : undefined;
 
-    const data = sanitizeReciboData(raw as ReciboData);
+    const data = sanitizeReciboData(raw as ReciboPayload);
     if (pixPayload) {
       data.pixPayload = pixPayload;
     }

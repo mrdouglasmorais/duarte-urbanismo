@@ -4,9 +4,13 @@ import { findReciboByShareId } from '@/lib/recibos-repository';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(_request: NextRequest, { params }: { params: { shareId: string } }) {
+interface ShareRouteContext {
+  params: Promise<{ shareId: string }>;
+}
+
+export async function GET(_request: NextRequest, context: ShareRouteContext) {
   try {
-    const shareId = params.shareId;
+    const { shareId } = await context.params;
     const record = await findReciboByShareId(shareId);
 
     if (!record) {

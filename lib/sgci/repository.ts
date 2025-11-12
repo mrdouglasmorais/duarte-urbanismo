@@ -11,9 +11,9 @@ const COLLECTIONS = {
 
 type CollectionKey = keyof typeof COLLECTIONS;
 
-function stripMongoId<T extends Record<string, unknown>>(docs: T[]): T[] {
+function stripMongoId<T extends object>(docs: T[]): T[] {
   return docs.map(doc => {
-    const clone: Record<string, unknown> = { ...doc };
+    const clone = { ...(doc as Record<string, unknown>) };
     delete clone._id;
     return clone as T;
   });

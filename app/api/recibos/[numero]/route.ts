@@ -2,18 +2,17 @@ import { buildShareUrl, generateReciboHash } from '@/lib/authenticity';
 import { findReciboByNumero } from '@/lib/recibos-repository';
 import { NextRequest, NextResponse } from 'next/server';
 
-interface RouteParams {
-  params: {
-    numero: string;
-  };
+interface RouteContext {
+  params: Promise<{ numero: string }>;
 }
 
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const numero = decodeURIComponent(params.numero);
+    const { numero } = await context.params;
+    const decodedNumero = decodeURIComponent(numero);
     const hashParam = request.nextUrl.searchParams.get('hash') || undefined;
 
-    const recibo = await findReciboByNumero(numero);
+    const recibo = await findReciboByNumero(decodedNumero);
 
     if (!recibo) {
       return NextResponse.json(
