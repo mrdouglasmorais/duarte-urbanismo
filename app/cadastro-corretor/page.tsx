@@ -27,6 +27,7 @@ interface FormData {
   bancoPix: string;
   areaAtuacao: string;
   observacoes: string;
+  aceiteTermos: boolean;
 }
 
 const fadeInUp = {
@@ -58,16 +59,22 @@ export default function CadastroCorretorPage() {
     bancoTipoConta: '',
     bancoPix: '',
     areaAtuacao: '',
-    observacoes: ''
+    observacoes: '',
+    aceiteTermos: false
   });
+  const [showTermoModal, setShowTermoModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -119,6 +126,13 @@ export default function CadastroCorretorPage() {
 
     if (formData.senha !== formData.confirmarSenha) {
       setErrorMessage('As senhas não coincidem');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validação de aceite de termos
+    if (!formData.aceiteTermos) {
+      setErrorMessage('Você deve aceitar os termos e condições para continuar');
       setIsSubmitting(false);
       return;
     }
@@ -203,7 +217,8 @@ export default function CadastroCorretorPage() {
         bancoTipoConta: '',
         bancoPix: '',
         areaAtuacao: '',
-        observacoes: ''
+        observacoes: '',
+        aceiteTermos: false
       });
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -762,6 +777,45 @@ export default function CadastroCorretorPage() {
                     </div>
                   </motion.div>
 
+                  {/* Termo de Aceite */}
+                  <motion.div {...fadeInUp}>
+                    <div className="rounded-2xl border-2 border-slate-200/70 bg-slate-50/50 p-6">
+                      <div className="flex items-start gap-4">
+                        <input
+                          type="checkbox"
+                          id="aceiteTermos"
+                          name="aceiteTermos"
+                          checked={formData.aceiteTermos}
+                          onChange={handleInputChange}
+                          className="mt-1 h-5 w-5 rounded border-slate-300 text-emerald-600 focus:ring-2 focus:ring-emerald-500/20"
+                          required
+                        />
+                        <label htmlFor="aceiteTermos" className="flex-1 text-sm text-slate-700 leading-relaxed">
+                          <span className="font-semibold">Declaro que li e aceito os </span>
+                          <button
+                            type="button"
+                            onClick={() => setShowTermoModal(true)}
+                            className="font-semibold text-emerald-600 underline hover:text-emerald-700 transition"
+                          >
+                            Termos e Condições de Parceria
+                          </button>
+                          <span className="font-semibold"> e o </span>
+                          <button
+                            type="button"
+                            onClick={() => setShowTermoModal(true)}
+                            className="font-semibold text-emerald-600 underline hover:text-emerald-700 transition"
+                          >
+                            Contrato de Corretor Parceiro
+                          </button>
+                          <span className="font-semibold"> da Duarte Urbanismo LTDA.</span>
+                          <span className="block mt-2 text-xs text-slate-500">
+                            Ao marcar esta opção, você confirma que leu, compreendeu e concorda com todas as cláusulas do contrato de parceria.
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  </motion.div>
+
                   {/* Error Message */}
                   {errorMessage && (
                     <motion.div
@@ -789,7 +843,7 @@ export default function CadastroCorretorPage() {
                     </Link>
                     <button
                       type="submit"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !formData.aceiteTermos}
                       className="rounded-full bg-emerald-600 px-8 py-4 text-base font-semibold uppercase tracking-[0.2em] text-white transition-all hover:scale-105 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                     >
                       {isSubmitting ? 'Enviando...' : 'Enviar Cadastro'}
@@ -833,6 +887,182 @@ export default function CadastroCorretorPage() {
           </div>
         </div>
       </footer>
+
+      {/* Modal do Termo */}
+      {showTermoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setShowTermoModal(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[40px] bg-white p-8 shadow-2xl md:p-12"
+          >
+            <button
+              onClick={() => setShowTermoModal(false)}
+              className="absolute right-6 top-6 rounded-full bg-slate-100 p-2 text-slate-600 transition hover:bg-slate-200"
+            >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="prose prose-slate max-w-none">
+              <h1 className="text-3xl font-bold text-slate-900 mb-6" style={{ fontFamily: 'var(--font-playfair), serif' }}>
+                Termo de Aceite e Contrato de Corretor Parceiro
+              </h1>
+              
+              <div className="space-y-6 text-slate-700">
+                <section>
+                  <h2 className="text-xl font-bold text-slate-900 mb-3">1. PARTES CONTRATANTES</h2>
+                  <p>
+                    <strong>CONTRATADA:</strong> DUARTE URBANISMO LTDA, inscrita no CNPJ sob o nº 47.200.760/0001-06, 
+                    com sede na Rua José Antonio da Silva, 152 · Sala 03, Escritório 81, Centro, 
+                    São João Batista/SC, CEP 88.240-000.
+                  </p>
+                  <p className="mt-2">
+                    <strong>CONTRATANTE:</strong> O corretor de imóveis que preenche este cadastro, 
+                    devidamente registrado no CRECI (Conselho Regional de Corretores de Imóveis).
+                  </p>
+                </section>
+
+                <section>
+                  <h2 className="text-xl font-bold text-slate-900 mb-3">2. OBJETO DO CONTRATO</h2>
+                  <p>
+                    O presente contrato tem por objeto estabelecer as condições de parceria entre a CONTRATADA 
+                    e o CONTRATANTE para a comercialização de empreendimentos imobiliários desenvolvidos pela CONTRATADA, 
+                    mediante a intermediação de negócios imobiliários.
+                  </p>
+                </section>
+
+                <section>
+                  <h2 className="text-xl font-bold text-slate-900 mb-3">3. OBRIGAÇÕES DO CONTRATANTE (CORRETOR)</h2>
+                  <ul className="list-disc pl-6 space-y-2">
+                    <li>Manter-se devidamente registrado no CRECI e em situação regular perante o Conselho;</li>
+                    <li>Apresentar clientes interessados nos empreendimentos da CONTRATADA;</li>
+                    <li>Fornecer informações corretas e atualizadas sobre os empreendimentos;</li>
+                    <li>Zelar pela imagem e reputação da CONTRATADA;</li>
+                    <li>Manter sigilo sobre informações confidenciais da CONTRATADA;</li>
+                    <li>Atuar de forma ética e profissional em todas as negociações;</li>
+                    <li>Informar imediatamente a CONTRATADA sobre qualquer irregularidade ou problema identificado;</li>
+                    <li>Fornecer dados bancários corretos para recebimento de comissões;</li>
+                    <li>Manter atualizados seus dados cadastrais junto à CONTRATADA.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h2 className="text-xl font-bold text-slate-900 mb-3">4. OBRIGAÇÕES DA CONTRATADA</h2>
+                  <ul className="list-disc pl-6 space-y-2">
+                    <li>Fornecer materiais de marketing e informações técnicas sobre os empreendimentos;</li>
+                    <li>Realizar o pagamento das comissões devidas, conforme acordado;</li>
+                    <li>Manter o CONTRATANTE informado sobre atualizações dos empreendimentos;</li>
+                    <li>Respeitar os prazos estabelecidos para pagamento de comissões;</li>
+                    <li>Fornecer suporte necessário para a comercialização dos empreendimentos.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h2 className="text-xl font-bold text-slate-900 mb-3">5. COMISSÕES</h2>
+                  <p>
+                    As comissões serão calculadas e pagas conforme critérios estabelecidos pela CONTRATADA, 
+                    que serão comunicados ao CONTRATANTE por ocasião da aprovação de seu cadastro e poderão 
+                    ser atualizados mediante comunicação prévia.
+                  </p>
+                  <p className="mt-2">
+                    <strong>Observação:</strong> Os percentuais e condições específicas de comissão serão 
+                    definidos e comunicados individualmente após a aprovação do cadastro e análise do perfil 
+                    do corretor parceiro.
+                  </p>
+                  <ul className="list-disc pl-6 space-y-2 mt-3">
+                    <li>O pagamento das comissões será realizado mediante crédito na conta bancária informada no cadastro;</li>
+                    <li>As comissões serão pagas após a efetivação da venda e cumprimento de todas as condições contratuais;</li>
+                    <li>A CONTRATADA se reserva o direito de reter comissões em caso de descumprimento contratual;</li>
+                    <li>O CONTRATANTE será responsável pelo pagamento de todos os impostos incidentes sobre as comissões recebidas.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h2 className="text-xl font-bold text-slate-900 mb-3">6. APROVAÇÃO DO CADASTRO</h2>
+                  <p>
+                    O cadastro do CONTRATANTE está sujeito à aprovação da CONTRATADA. A CONTRATADA se reserva 
+                    o direito de aprovar ou reprovar cadastros conforme critérios próprios, não sendo obrigada 
+                    a justificar a decisão.
+                  </p>
+                  <p className="mt-2">
+                    Apenas após a aprovação do cadastro e comunicação ao CONTRATANTE, o presente contrato 
+                    entrará em vigor.
+                  </p>
+                </section>
+
+                <section>
+                  <h2 className="text-xl font-bold text-slate-900 mb-3">7. VIGÊNCIA E RESCISÃO</h2>
+                  <p>
+                    Este contrato terá vigência indeterminada, podendo ser rescindido por qualquer das partes, 
+                    mediante comunicação prévia de 30 (trinta) dias.
+                  </p>
+                  <p className="mt-2">
+                    A CONTRATADA poderá rescindir imediatamente o contrato em caso de descumprimento das 
+                    obrigações pelo CONTRATANTE ou por atos que comprometam a imagem da CONTRATADA.
+                  </p>
+                </section>
+
+                <section>
+                  <h2 className="text-xl font-bold text-slate-900 mb-3">8. CONFIDENCIALIDADE</h2>
+                  <p>
+                    O CONTRATANTE compromete-se a manter absoluto sigilo sobre todas as informações confidenciais 
+                    da CONTRATADA, incluindo estratégias comerciais, dados de clientes, condições de negociação 
+                    e demais informações de natureza sigilosa.
+                  </p>
+                </section>
+
+                <section>
+                  <h2 className="text-xl font-bold text-slate-900 mb-3">9. PROPRIEDADE INTELECTUAL</h2>
+                  <p>
+                    Todos os materiais de marketing, marcas, logotipos e demais elementos de propriedade intelectual 
+                    da CONTRATADA são de uso exclusivo para fins de comercialização dos empreendimentos e não podem 
+                    ser utilizados para outros fins sem autorização prévia.
+                  </p>
+                </section>
+
+                <section>
+                  <h2 className="text-xl font-bold text-slate-900 mb-3">10. DADOS PESSOAIS</h2>
+                  <p>
+                    A CONTRATADA compromete-se a tratar os dados pessoais do CONTRATANTE em conformidade com a 
+                    Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018), utilizando-os exclusivamente 
+                    para fins de execução deste contrato e comunicação relacionada à parceria.
+                  </p>
+                </section>
+
+                <section>
+                  <h2 className="text-xl font-bold text-slate-900 mb-3">11. FORO</h2>
+                  <p>
+                    Fica eleito o foro da comarca de São João Batista/SC para dirimir quaisquer controvérsias 
+                    decorrentes deste contrato.
+                  </p>
+                </section>
+
+                <section className="border-t-2 border-slate-200 pt-6">
+                  <p className="text-sm text-slate-600 italic">
+                    Ao marcar a opção de aceite, o CONTRATANTE declara que leu, compreendeu e concorda com 
+                    todas as cláusulas deste contrato, comprometendo-se a cumpri-las integralmente.
+                  </p>
+                  <p className="text-sm text-slate-600 italic mt-2">
+                    São João Batista/SC, {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}.
+                  </p>
+                </section>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-end gap-4">
+              <button
+                onClick={() => setShowTermoModal(false)}
+                className="rounded-full border-2 border-slate-300 bg-white px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-slate-700 transition hover:bg-slate-50"
+              >
+                Fechar
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

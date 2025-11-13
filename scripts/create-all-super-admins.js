@@ -1,8 +1,8 @@
 /**
  * Script para criar os 4 SUPER_ADMINs do sistema
- * 
+ *
  * Uso: node scripts/create-all-super-admins.js
- * 
+ *
  * Cria os seguintes SUPER_ADMINs:
  * 1. Daniel Duarte - Proprietário
  * 2. Douglas Morais - Diretor de tecnologia e negócios
@@ -77,15 +77,15 @@ async function createAllSuperAdmins() {
 
         if (existingUser) {
           console.log(`⚠️  Usuário ${admin.name} já existe. Atualizando...`);
-          
+
           const passwordHash = await bcrypt.hash(admin.password, 12);
           existingUser.passwordHash = passwordHash;
           existingUser.role = 'SUPER_ADMIN';
           existingUser.status = 'APPROVED';
           existingUser.name = admin.name;
-          
+
           await existingUser.save();
-          
+
           results.push({
             success: true,
             action: 'updated',
@@ -100,12 +100,12 @@ async function createAllSuperAdmins() {
               password: admin.password,
             }
           });
-          
+
           console.log(`   ✅ ${admin.name} atualizado para SUPER_ADMIN`);
         } else {
           // Criar novo SUPER_ADMIN
           const passwordHash = await bcrypt.hash(admin.password, 12);
-          
+
           const superAdmin = new User({
             email: admin.email,
             passwordHash,
@@ -115,7 +115,7 @@ async function createAllSuperAdmins() {
           });
 
           await superAdmin.save();
-          
+
           results.push({
             success: true,
             action: 'created',
@@ -131,7 +131,7 @@ async function createAllSuperAdmins() {
               password: admin.password,
             }
           });
-          
+
           console.log(`   ✅ ${admin.name} criado como SUPER_ADMIN`);
         }
       } catch (error) {
