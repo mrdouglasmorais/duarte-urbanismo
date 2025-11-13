@@ -142,7 +142,7 @@ export default function LandingPage() {
     }
     setCurrentSlide(newSlide);
   };
-  
+
   const handleNext = () => {
     let attempts = 0;
     let newSlide = (currentSlide + 1) % totalSlides;
@@ -152,18 +152,18 @@ export default function LandingPage() {
     }
     setCurrentSlide(newSlide);
   };
-  
+
   const goToSlide = (targetIndex: number) => {
     if (!imageErrors.has(galleryImages[targetIndex])) {
       setCurrentSlide((targetIndex + totalSlides) % totalSlides);
     }
   };
-  
+
   // Filtrar apenas imagens válidas que não têm erro
   const validImages = galleryImages.filter(img => !imageErrors.has(img));
   const currentValidIndex = validImages.indexOf(galleryImages[currentSlide]);
   const previewThumbnails = Array.from({ length: Math.min(5, validImages.length) }, (_, index) => {
-    const validIndex = currentValidIndex >= 0 
+    const validIndex = currentValidIndex >= 0
       ? (currentValidIndex + index) % validImages.length
       : index % validImages.length;
     return validImages[validIndex];
@@ -1138,6 +1138,12 @@ export default function LandingPage() {
                 className="rounded-full border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white backdrop-blur transition hover:bg-white/20"
               >
                 Acessar Painel
+              </Link>
+              <Link
+                href="/cadastro-corretor"
+                className="text-sm text-white/70 underline transition hover:text-white"
+              >
+                Cadastro de Corretor
               </Link>
             </div>
           </div>

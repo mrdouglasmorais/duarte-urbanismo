@@ -75,7 +75,21 @@ export interface Corretor {
   creci: string;
   email: string;
   telefone: string;
+  whatsapp?: string;
+  instagram?: string;
+  foto?: string;
+  endereco?: string;
+  cep?: string;
+  cidade?: string;
+  estado?: string;
+  bancoNome?: string;
+  bancoAgencia?: string;
+  bancoConta?: string;
+  bancoTipoConta?: string;
+  bancoPix?: string;
   contatoSecundario?: string;
   areaAtuacao?: string;
   observacoes?: string;
+  status?: 'Pendente' | 'Aprovado' | 'Rejeitado';
+  criadoEm?: string;
 }
