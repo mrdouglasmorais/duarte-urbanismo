@@ -9,6 +9,7 @@ import type { ReciboData } from "@/types/recibo";
 import type { Negociacao, Parcela, ParcelaStatus } from "@/types/sgci";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import QRCode from "qrcode";
 
 const permutaTipos = ["Veículo", "Imóvel", "Outro Bem"] as const;
 const statusOptions = ["Em prospecção", "Em andamento", "Aguardando aprovação", "Fechado"] as const;
@@ -90,6 +91,9 @@ export default function NegociacoesPage() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<"negociacoes" | "recibos">("negociacoes");
   const [reciboLoadingId, setReciboLoadingId] = useState<string | null>(null);
+  const [qrCodeParcelaId, setQrCodeParcelaId] = useState<string | null>(null);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
+  const [pixPayload, setPixPayload] = useState<string | null>(null);
 
   const handleUnidadeChange = (unidadeId: string) => {
     setForm(prev => {
@@ -278,13 +282,28 @@ export default function NegociacoesPage() {
       const pixKey = DEFAULT_PIX_KEY;
 
       // Criar mensagem PIX com lote, número e corretor (máximo 25 caracteres)
-      let pixTxId = numeroRecibo;
+      // Normalizar para remover caracteres especiais antes de usar
+      const normalizeTxId = (text: string): string => {
+        return text
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^A-Z0-9]/gi, '')
+          .toUpperCase()
+          .slice(0, 25);
+      };
+
+      let pixTxId = normalizeTxId(numeroRecibo);
       if (negociacao.numeroLote || corretor) {
         const loteInfo = negociacao.numeroLote ? `L${negociacao.numeroLote}` : '';
-        const corretorInfo = corretor ? `${corretor.nome.split(' ')[0]}${corretor.creci ? `-${corretor.creci}` : ''}` : '';
-        const separador = loteInfo && corretorInfo ? '/' : '';
-        const infoAdicional = `${loteInfo}${separador}${corretorInfo}`.slice(0, 10); // Limitar a 10 caracteres
-        pixTxId = `${numeroRecibo}-${infoAdicional}`.slice(0, 25); // Limitar total a 25 caracteres
+        const corretorInfo = corretor ? `${corretor.nome.split(' ')[0]}${corretor.creci ? corretor.creci : ''}` : '';
+        const separador = loteInfo && corretorInfo ? '' : ''; // Remover separador especial
+        const infoAdicional = normalizeTxId(`${loteInfo}${separador}${corretorInfo}`).slice(0, 10);
+        pixTxId = normalizeTxId(`${numeroRecibo}${infoAdicional}`).slice(0, 25);
+      }
+
+      // Garantir que txId tenha pelo menos 1 caractere
+      if (!pixTxId || pixTxId.length === 0) {
+        pixTxId = normalizeTxId(numeroRecibo) || 'SGCI';
       }
 
       const qrOptions = parcela.status !== "Paga"
@@ -295,7 +314,7 @@ export default function NegociacoesPage() {
             amount: parcela.valor,
             merchantName: EMISSOR_NOME,
             merchantCity: "Florianopolis",
-            txId: pixTxId.length > 25 ? pixTxId.slice(-25) : pixTxId.padStart(25, '0')
+            txId: pixTxId
           })
         }
         : undefined;
@@ -1109,6 +1128,7 @@ export default function NegociacoesPage() {
                               <th>Vencimento</th>
                               <th>Status</th>
                               <th>Recibo</th>
+                              <th>PIX</th>
                               <th>Ações</th>
                             </tr>
                           </thead>
@@ -1163,6 +1183,69 @@ export default function NegociacoesPage() {
                                   )}
                                 </td>
                                 <td className="py-2">
+                                  {parcela.status !== "Paga" && (
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        try {
+                                          const pixKey = DEFAULT_PIX_KEY;
+                                          const normalizeTxId = (text: string): string => {
+                                            return text
+                                              .normalize('NFD')
+                                              .replace(/[\u0300-\u036f]/g, '')
+                                              .replace(/[^A-Z0-9]/gi, '')
+                                              .toUpperCase()
+                                              .slice(0, 25);
+                                          };
+
+                                          let txId = normalizeTxId(`REC${idx + 1}`);
+                                          if (negociacao.numeroLote || corretor) {
+                                            const loteInfo = negociacao.numeroLote ? `L${negociacao.numeroLote}` : '';
+                                            const corretorInfo = corretor ? `${corretor.nome.split(' ')[0]}${corretor.creci ? corretor.creci : ''}` : '';
+                                            const infoAdicional = normalizeTxId(`${loteInfo}${corretorInfo}`).slice(0, 10);
+                                            txId = normalizeTxId(`${txId}${infoAdicional}`).slice(0, 25);
+                                          }
+
+                                          const payload = buildStaticPixPayload({
+                                            key: pixKey,
+                                            amount: parcela.valor,
+                                            merchantName: EMISSOR_NOME,
+                                            merchantCity: "Florianopolis",
+                                            txId: txId || 'SGCI'
+                                          });
+
+                                          setPixPayload(payload);
+                                          setQrCodeParcelaId(parcela.id);
+
+                                          // Gerar QR code
+                                          const dataUrl = await QRCode.toDataURL(payload, {
+                                            width: 300,
+                                            margin: 2,
+                                            color: {
+                                              dark: '#000000',
+                                              light: '#FFFFFF'
+                                            },
+                                            errorCorrectionLevel: 'M'
+                                          });
+                                          setQrCodeDataUrl(dataUrl);
+                                        } catch (error) {
+                                          console.error('Erro ao gerar QR code PIX:', error);
+                                          const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+                                          console.error('Detalhes do erro:', {
+                                            error,
+                                            message: errorMessage,
+                                            stack: error instanceof Error ? error.stack : undefined
+                                          });
+                                          setMensagem(`Erro ao gerar QR code PIX: ${errorMessage}. Verifique o console para mais detalhes.`);
+                                        }
+                                      }}
+                                      className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-700 hover:bg-emerald-100"
+                                    >
+                                      Ver QR Code
+                                    </button>
+                                  )}
+                                </td>
+                                <td className="py-2">
                                   <button
                                     onClick={() => toggleStatus(negociacao.id, parcela.id, parcela.status)}
                                     className="text-xs text-slate-600 underline"
@@ -1174,8 +1257,83 @@ export default function NegociacoesPage() {
                             ))}
                             {negociacao.parcelas.length === 0 && (
                               <tr>
-                                <td colSpan={6} className="py-4 text-center text-slate-500">
+                                <td colSpan={7} className="py-4 text-center text-slate-500">
                                   Nenhuma parcela registrada.
+                                </td>
+                              </tr>
+                            )}
+                            {/* Linha expandida para QR Code PIX - apenas para esta negociação */}
+                            {qrCodeParcelaId && negociacao.parcelas.some(p => p.id === qrCodeParcelaId) && (
+                              <tr>
+                                <td colSpan={7} className="py-6">
+                                  <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/50 p-6">
+                                    <div className="flex items-start justify-between gap-6">
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-3 mb-4">
+                                          <h4 className="text-lg font-semibold text-emerald-900">QR Code PIX para Pagamento</h4>
+                                          <button
+                                            onClick={() => {
+                                              setQrCodeParcelaId(null);
+                                              setQrCodeDataUrl(null);
+                                              setPixPayload(null);
+                                            }}
+                                            className="text-emerald-700 hover:text-emerald-900"
+                                            title="Fechar QR Code"
+                                          >
+                                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                          </button>
+                                        </div>
+                                        {qrCodeDataUrl && (
+                                          <div className="flex flex-col items-start gap-4 md:flex-row md:items-center">
+                                            <div className="flex-shrink-0 rounded-xl border-4 border-white bg-white p-4 shadow-lg">
+                                              <img src={qrCodeDataUrl} alt="QR Code PIX" className="h-64 w-64" />
+                                            </div>
+                                            <div className="flex-1 space-y-3">
+                                              <div>
+                                                <p className="text-sm font-semibold text-emerald-900">Chave PIX:</p>
+                                                <p className="text-sm text-emerald-700 font-mono break-all">{DEFAULT_PIX_KEY}</p>
+                                              </div>
+                                              <div>
+                                                <p className="text-sm font-semibold text-emerald-900">Valor:</p>
+                                                <p className="text-lg font-bold text-emerald-900">
+                                                  {negociacao.parcelas.find(p => p.id === qrCodeParcelaId)?.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                                </p>
+                                              </div>
+                                              <div>
+                                                <p className="text-sm font-semibold text-emerald-900">Vencimento:</p>
+                                                <p className="text-sm text-emerald-700">
+                                                  {formatarData(negociacao.parcelas.find(p => p.id === qrCodeParcelaId)?.vencimento || '')}
+                                                </p>
+                                              </div>
+                                              {pixPayload && (
+                                                <div>
+                                                  <p className="text-xs text-emerald-600 mb-2">Código PIX (clique para copiar):</p>
+                                                  <button
+                                                    onClick={() => {
+                                                      navigator.clipboard.writeText(pixPayload);
+                                                      setMensagem('Código PIX copiado para a área de transferência!');
+                                                      setTimeout(() => setMensagem(null), 3000);
+                                                    }}
+                                                    className="w-full rounded-lg border border-emerald-300 bg-white px-4 py-2 text-xs font-mono text-emerald-900 hover:bg-emerald-50 break-all text-left transition"
+                                                    title="Clique para copiar"
+                                                  >
+                                                    {pixPayload}
+                                                  </button>
+                                                </div>
+                                              )}
+                                              <div className="pt-2">
+                                                <p className="text-xs text-emerald-700">
+                                                  📱 Escaneie o QR Code com o app do seu banco para pagar via PIX
+                                                </p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
                                 </td>
                               </tr>
                             )}
