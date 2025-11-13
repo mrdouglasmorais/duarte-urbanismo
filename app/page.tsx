@@ -27,6 +27,25 @@ const estatisticas = [
   { valor: '100%', unidade: '', descricao: 'Sustentável' }
 ];
 
+const corretores = [
+  {
+    id: 'cor-marcos-azevedo',
+    nome: 'Marcos Azevedo',
+    creci: '123456-SC',
+    email: 'marcos.azevedo@duarteurbanismo.com',
+    telefone: '48 99777-2200',
+    areaAtuacao: 'Florianópolis e região metropolitana'
+  },
+  {
+    id: 'cor-juliana-santos',
+    nome: 'Juliana Santos',
+    creci: '654321-SC',
+    email: 'juliana.santos@duarteurbanismo.com',
+    telefone: '48 99888-3300',
+    areaAtuacao: 'Especialista em negociação corporativa'
+  }
+];
+
 const galleryImages = [
   'images/page_2_img_2.jpg',
   'images/page_2_img_3.jpg',
@@ -72,9 +91,31 @@ const fadeInUp = {
   transition: { duration: 0.6, ease: 'easeOut' }
 };
 
+const menuItems = [
+  { label: 'Início', href: '#hero' },
+  { label: 'O Condomínio', href: '#condominio' },
+  { label: 'Filosofia', href: '#filosofia' },
+  { label: 'Chácaras', href: '#chacaras' },
+  { label: 'Lazer', href: '#lazer' },
+  { label: 'Localização', href: '#localizacao' },
+  { label: 'Galeria', href: '#galeria' },
+  { label: 'Contato', href: '#contato' }
+];
+
 export default function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    nome: '',
+    email: '',
+    telefone: '',
+    mensagem: '',
+    dataAgendamento: '',
+    horarioAgendamento: '',
+    corretorId: ''
+  });
+  const [formSubmitted, setFormSubmitted] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -96,10 +137,108 @@ export default function LandingPage() {
   const goToSlide = (targetIndex: number) => setCurrentSlide((targetIndex + totalSlides) % totalSlides);
   const previewThumbnails = Array.from({ length: 5 }, (_, index) => galleryImages[(currentSlide + index) % totalSlides]);
 
+  const handleScrollTo = (href: string) => {
+    setIsMenuOpen(false);
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Aqui você pode adicionar a lógica para enviar o formulário
+    console.log('Formulário enviado:', formData);
+    setFormSubmitted(true);
+    setTimeout(() => {
+      setFormSubmitted(false);
+      setFormData({
+        nome: '',
+        email: '',
+        telefone: '',
+        mensagem: '',
+        dataAgendamento: '',
+        horarioAgendamento: '',
+        corretorId: ''
+      });
+    }, 3000);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   return (
     <div className="min-h-screen bg-white text-slate-900">
+      {/* Navegação Sticky */}
+      <motion.nav
+        className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/60 shadow-sm"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="flex h-20 items-center justify-between">
+            <Link href="#hero" className="flex items-center gap-3" onClick={() => handleScrollTo('#hero')}>
+              <Image src="/logo_duarte_sem_fundo.png" alt="Duarte Urbanismo" width={140} height={45} className="h-10 w-auto" />
+            </Link>
+
+            {/* Menu Desktop */}
+            <div className="hidden md:flex items-center gap-1">
+              {menuItems.map(item => (
+                <button
+                  key={item.href}
+                  onClick={() => handleScrollTo(item.href)}
+                  className="px-4 py-2 text-sm font-semibold uppercase tracking-[0.15em] text-slate-700 transition-colors hover:text-emerald-600 rounded-lg hover:bg-emerald-50"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Botão Mobile */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden rounded-lg p-2 text-slate-700 hover:bg-slate-100"
+              aria-label="Menu"
+            >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {isMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
+
+          {/* Menu Mobile */}
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden border-t border-slate-200 py-4"
+            >
+              <div className="flex flex-col gap-2">
+                {menuItems.map(item => (
+                  <button
+                    key={item.href}
+                    onClick={() => handleScrollTo(item.href)}
+                    className="px-4 py-2 text-sm font-semibold uppercase tracking-[0.15em] text-slate-700 transition-colors hover:text-emerald-600 hover:bg-emerald-50 rounded-lg text-left"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </motion.nav>
+
       {/* Hero Section - Inspirado no Senna Tower */}
-      <section ref={heroRef} className="relative h-screen overflow-hidden">
+      <section id="hero" ref={heroRef} className="relative h-screen overflow-hidden">
         {/* Background com efeito de luz natural */}
         <motion.div
           className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-green-800 to-amber-900"
@@ -140,7 +279,7 @@ export default function LandingPage() {
         </motion.div>
 
         {/* Conteúdo do Hero */}
-        <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center text-white">
+        <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center text-white pt-20">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -214,7 +353,7 @@ export default function LandingPage() {
       </section>
 
       {/* Seção: O Condomínio Mais Sustentável */}
-      <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-emerald-950 via-green-900 to-amber-950">
+      <section id="condominio" className="relative min-h-screen overflow-hidden bg-gradient-to-br from-emerald-950 via-green-900 to-amber-950">
         {/* Efeito de luz no horizonte */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-400/30 via-transparent to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-emerald-950/80 to-transparent" />
@@ -305,7 +444,7 @@ export default function LandingPage() {
       </section>
 
       {/* Seção: Inspirado na Harmonia com a Natureza */}
-      <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-emerald-50/30 to-amber-50/30">
+      <section id="filosofia" className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-emerald-50/30 to-amber-50/30">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-emerald-200/20 via-transparent to-transparent" />
 
         <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 gap-12 px-4 py-24 lg:grid-cols-2 lg:items-center">
@@ -364,7 +503,7 @@ export default function LandingPage() {
       </section>
 
       {/* Seção: Chácaras */}
-      <section className="bg-white py-24">
+      <section id="chacaras" className="bg-white py-24">
         <div className="mx-auto max-w-7xl px-4">
           <motion.div
             className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center"
@@ -423,7 +562,7 @@ export default function LandingPage() {
       </section>
 
       {/* Seção: Lazer */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-green-800 to-amber-900 py-24">
+      <section id="lazer" className="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-green-800 to-amber-900 py-24">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-emerald-400/20 via-transparent to-transparent" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-4">
@@ -485,7 +624,7 @@ export default function LandingPage() {
       </section>
 
       {/* Seção: Tijucas - O Destino Completo */}
-      <section className="bg-white py-24">
+      <section id="localizacao" className="bg-white py-24">
         <div className="mx-auto max-w-7xl px-4">
           <motion.div
             className="relative mb-12 h-[400px] overflow-hidden rounded-[40px] shadow-2xl"
@@ -595,7 +734,7 @@ export default function LandingPage() {
       </section>
 
       {/* Galeria */}
-      <motion.section className="bg-white py-24" {...fadeInUp}>
+      <motion.section id="galeria" className="bg-white py-24" {...fadeInUp}>
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-12 text-center">
             <p className="text-sm uppercase tracking-[0.5em] text-slate-400">Galeria</p>
@@ -669,6 +808,232 @@ export default function LandingPage() {
           </div>
         </div>
       </motion.section>
+
+      {/* Seção: Corretores e Formulário de Contato */}
+      <section id="contato" className="bg-gradient-to-br from-slate-50 via-emerald-50/20 to-amber-50/20 py-24">
+        <div className="mx-auto max-w-7xl px-4">
+          <motion.div
+            className="mb-16 text-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <p className="text-sm uppercase tracking-[0.5em] text-emerald-600">Contato</p>
+            <h2 className="mt-2 text-4xl font-bold text-slate-900 md:text-5xl lg:text-6xl" style={{ fontFamily: 'var(--font-playfair), serif' }}>
+              CORRETORES DE PLANTÃO
+            </h2>
+            <p className="mt-4 text-lg text-slate-600">Nossa equipe está pronta para atender você</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
+            {/* Corretores */}
+            <motion.div
+              className="space-y-6"
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h3 className="text-2xl font-bold text-slate-900">Nossa Equipe</h3>
+              <div className="space-y-4">
+                {corretores.map(corretor => (
+                  <div
+                    key={corretor.id}
+                    className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg transition hover:shadow-xl"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="text-xl font-bold text-slate-900">{corretor.nome}</h4>
+                        <p className="mt-1 text-sm text-slate-500">CRECI: {corretor.creci}</p>
+                        {corretor.areaAtuacao && (
+                          <p className="mt-2 text-sm text-slate-600">{corretor.areaAtuacao}</p>
+                        )}
+                        <div className="mt-4 flex flex-wrap gap-3">
+                          <a
+                            href={`tel:${corretor.telefone.replace(/\s/g, '')}`}
+                            className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                          >
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            </svg>
+                            {corretor.telefone}
+                          </a>
+                          <a
+                            href={`mailto:${corretor.email}`}
+                            className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                          >
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            Email
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Formulário de Contato */}
+            <motion.div
+              className="rounded-3xl border border-slate-200 bg-white p-8 shadow-xl"
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h3 className="mb-6 text-2xl font-bold text-slate-900">Agende sua Visita</h3>
+              {formSubmitted ? (
+                <div className="rounded-2xl bg-emerald-50 p-6 text-center">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500">
+                    <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h4 className="text-xl font-bold text-emerald-900">Mensagem Enviada!</h4>
+                  <p className="mt-2 text-emerald-700">Entraremos em contato em breve.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div>
+                    <label htmlFor="nome" className="mb-2 block text-sm font-semibold text-slate-700">
+                      Nome Completo *
+                    </label>
+                    <input
+                      type="text"
+                      id="nome"
+                      name="nome"
+                      required
+                      value={formData.nome}
+                      onChange={handleInputChange}
+                      className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                      placeholder="Seu nome"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="email" className="mb-2 block text-sm font-semibold text-slate-700">
+                      E-mail *
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      required
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                      placeholder="seu@email.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="telefone" className="mb-2 block text-sm font-semibold text-slate-700">
+                      Telefone *
+                    </label>
+                    <input
+                      type="tel"
+                      id="telefone"
+                      name="telefone"
+                      required
+                      value={formData.telefone}
+                      onChange={handleInputChange}
+                      className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                      placeholder="(48) 99999-9999"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="corretorId" className="mb-2 block text-sm font-semibold text-slate-700">
+                      Preferência de Corretor
+                    </label>
+                    <select
+                      id="corretorId"
+                      name="corretorId"
+                      value={formData.corretorId}
+                      onChange={handleInputChange}
+                      className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    >
+                      <option value="">Selecione um corretor (opcional)</option>
+                      {corretores.map(corretor => (
+                        <option key={corretor.id} value={corretor.id}>
+                          {corretor.nome} - CRECI {corretor.creci}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="dataAgendamento" className="mb-2 block text-sm font-semibold text-slate-700">
+                        Data Preferencial *
+                      </label>
+                      <input
+                        type="date"
+                        id="dataAgendamento"
+                        name="dataAgendamento"
+                        required
+                        value={formData.dataAgendamento}
+                        onChange={handleInputChange}
+                        min={new Date().toISOString().split('T')[0]}
+                        className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="horarioAgendamento" className="mb-2 block text-sm font-semibold text-slate-700">
+                        Horário Preferencial *
+                      </label>
+                      <select
+                        id="horarioAgendamento"
+                        name="horarioAgendamento"
+                        required
+                        value={formData.horarioAgendamento}
+                        onChange={handleInputChange}
+                        className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                      >
+                        <option value="">Selecione um horário</option>
+                        <option value="08:00">08:00</option>
+                        <option value="09:00">09:00</option>
+                        <option value="10:00">10:00</option>
+                        <option value="11:00">11:00</option>
+                        <option value="14:00">14:00</option>
+                        <option value="15:00">15:00</option>
+                        <option value="16:00">16:00</option>
+                        <option value="17:00">17:00</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="mensagem" className="mb-2 block text-sm font-semibold text-slate-700">
+                      Mensagem
+                    </label>
+                    <textarea
+                      id="mensagem"
+                      name="mensagem"
+                      rows={4}
+                      value={formData.mensagem}
+                      onChange={handleInputChange}
+                      className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                      placeholder="Conte-nos sobre seu interesse..."
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full rounded-full bg-emerald-600 px-8 py-4 text-base font-semibold uppercase tracking-[0.2em] text-white transition-all hover:scale-105 hover:bg-emerald-700"
+                  >
+                    Enviar Solicitação
+                  </button>
+                </form>
+              )}
+            </motion.div>
+          </div>
+        </div>
+      </section>
 
       {/* Modal de zoom */}
       {zoomImage && (
