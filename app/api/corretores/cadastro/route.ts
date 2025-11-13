@@ -21,8 +21,9 @@ export async function POST(request: NextRequest) {
       const authHeader = request.headers.get('authorization');
       if (authHeader?.startsWith('Bearer ')) {
         const token = authHeader.substring(7);
-        const { verifyFirebaseToken } = await import('@/lib/firebase/server-auth');
-        const decodedToken = await verifyFirebaseToken(token);
+        // Usar importação dinâmica para evitar problemas com webpack
+        const serverAuth = await import('@/lib/firebase/server-auth');
+        const decodedToken = await serverAuth.verifyFirebaseToken(token);
         if (decodedToken) {
           // Buscar perfil completo usando getServerUser com token no cookie temporariamente
           // Ou criar objeto mínimo compatível

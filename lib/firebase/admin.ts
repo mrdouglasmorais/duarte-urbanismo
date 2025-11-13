@@ -1,33 +1,45 @@
-import { initializeApp, getApps, cert, App } from 'firebase-admin/app';
-import { getAuth, Auth } from 'firebase-admin/auth';
-import { getFirestore, Firestore } from 'firebase-admin/firestore';
+// Este arquivo só deve ser importado no servidor
+// Usar importação dinâmica para evitar que webpack tente processar firebase-admin
+import './server-only';
 
-let app: App | undefined;
-let adminAuth: Auth | undefined;
-let adminDb: Firestore | undefined;
+let adminAuth: any;
+let adminDb: any;
 
-if (getApps().length === 0) {
+// Função para inicializar Firebase Admin apenas quando necessário
+async function initializeAdmin() {
+  if (typeof window !== 'undefined') {
+    return; // Não executar no cliente
+  }
+
   try {
-    // Tentar inicializar Firebase Admin
-    // Nota: Para produção, você precisará configurar as credenciais de service account
-    // Por enquanto, vamos usar inicialização sem credenciais (funciona para algumas operações)
-    app = initializeApp({
-      projectId: 'duarte-urbanismo',
-    });
+    const { initializeApp, getApps } = await import('firebase-admin/app');
+    const { getAuth } = await import('firebase-admin/auth');
+    const { getFirestore } = await import('firebase-admin/firestore');
+
+    let app;
+    if (getApps().length === 0) {
+      app = initializeApp({
+        projectId: 'duarte-urbanismo',
+      });
+    } else {
+      app = getApps()[0];
+    }
+
+    if (app) {
+      adminAuth = getAuth(app);
+      adminDb = getFirestore(app);
+    }
   } catch (error) {
     console.warn('Firebase Admin não pôde ser inicializado:', error);
   }
-} else {
-  app = getApps()[0];
 }
 
-if (app) {
-  try {
-    adminAuth = getAuth(app);
-    adminDb = getFirestore(app);
-  } catch (error) {
-    console.warn('Erro ao inicializar serviços do Firebase Admin:', error);
-  }
+// Inicializar apenas no servidor
+if (typeof window === 'undefined') {
+  // Inicializar de forma assíncrona para evitar problemas de build
+  initializeAdmin().catch((error) => {
+    console.warn('Erro ao inicializar Firebase Admin:', error);
+  });
 }
 
 export { adminAuth, adminDb };

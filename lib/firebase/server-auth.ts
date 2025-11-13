@@ -1,20 +1,42 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth, adminDb } from './admin';
 import type { UserRole, UserProfile, UserStatus } from './auth';
+
+// Importação dinâmica para evitar problemas com webpack
+let adminAuth: any;
+let adminDb: any;
+
+async function getAdminServices() {
+  if (typeof window !== 'undefined') {
+    return { adminAuth: null, adminDb: null };
+  }
+
+  if (!adminAuth || !adminDb) {
+    try {
+      const adminModule = await import('./admin');
+      adminAuth = adminModule.adminAuth;
+      adminDb = adminModule.adminDb;
+    } catch (error) {
+      console.warn('Erro ao importar Firebase Admin:', error);
+    }
+  }
+
+  return { adminAuth, adminDb };
+}
 
 /**
  * Verifica token Firebase no servidor
  */
 export async function verifyFirebaseToken(token: string) {
   try {
-    if (!adminAuth) {
+    const { adminAuth: auth } = await getAdminServices();
+    if (!auth) {
       // Se admin não estiver disponível, usar verificação básica via API
       // Em produção, configure Firebase Admin com service account
       console.warn('Firebase Admin não configurado. Usando verificação básica.');
       return null;
     }
-    const decodedToken = await adminAuth.verifyIdToken(token);
+    const decodedToken = await auth.verifyIdToken(token);
     return decodedToken;
   } catch (error) {
     console.error('Erro ao verificar token:', error);
@@ -40,7 +62,8 @@ export async function getServerUser(request?: NextRequest): Promise<(UserProfile
     }
 
     // Buscar perfil no Firestore
-    if (!adminDb) {
+    const { adminDb: db } = await getAdminServices();
+    if (!db) {
       // Retornar apenas dados básicos se admin não estiver disponível
       return {
         uid: decodedToken.uid,
@@ -53,7 +76,7 @@ export async function getServerUser(request?: NextRequest): Promise<(UserProfile
       };
     }
 
-    const userDoc = await adminDb.collection('users').doc(decodedToken.uid).get();
+    const userDoc = await db.collection('users').doc(decodedToken.uid).get();
     if (!userDoc.exists) {
       return {
         uid: decodedToken.uid,
