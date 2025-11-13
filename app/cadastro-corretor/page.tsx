@@ -626,16 +626,17 @@ export default function CadastroCorretorPage() {
                           <option value="Tubarão">Tubarão</option>
                           <option value="Imaruí">Imaruí</option>
                           <option value="Paulo Lopes">Paulo Lopes</option>
-                          <option value="Governador Celso Ramos">Governador Celso Ramos</option>
-                          <option value="Canasvieiras">Canasvieiras</option>
-                          <option value="Jurerê Internacional">Jurerê Internacional</option>
-                          <option value="Ingleses">Ingleses</option>
-                          <option value="Barra da Lagoa">Barra da Lagoa</option>
-                          <option value="Lagoa da Conceição">Lagoa da Conceição</option>
-                          <option value="Santo Antônio de Lisboa">Santo Antônio de Lisboa</option>
-                          <option value="Ribeirão da Ilha">Ribeirão da Ilha</option>
-                          <option value="Campeche">Campeche</option>
-                          <option value="Pântano do Sul">Pântano do Sul</option>
+                          <option value="Anitápolis">Anitápolis</option>
+                          <option value="Armazém">Armazém</option>
+                          <option value="Braço do Norte">Braço do Norte</option>
+                          <option value="Criciúma">Criciúma</option>
+                          <option value="Içara">Içara</option>
+                          <option value="Jaguaruna">Jaguaruna</option>
+                          <option value="Orleans">Orleans</option>
+                          <option value="Sangão">Sangão</option>
+                          <option value="Siderópolis">Siderópolis</option>
+                          <option value="Treze de Maio">Treze de Maio</option>
+                          <option value="Urussanga">Urussanga</option>
                         </select>
                         <p className="mt-1 text-xs text-slate-500">Região litorânea de Santa Catarina</p>
                       </div>
