@@ -30,16 +30,16 @@ export const firebaseUsersSeedData: FirebaseUserSeed[] = [
     email: 'daniel.duarte@duarteurbanismo.com',
     password: 'daniel123456',
     name: 'Daniel Duarte',
-    phone: '+55 48 9211-2284',
-    role: 'CORRETOR',
+    phone: '+55 47 9211-2284',
+    role: 'ADMIN', // Administrador do sistema
     status: 'APPROVED',
   },
   {
     email: 'gelvane.silva@duarteurbanismo.com',
     password: 'gelvane123456',
     name: 'Gelvane Silva',
-    phone: '+55 48 9211-2284',
-    role: 'CORRETOR',
+    phone: '+55 47 9211-2284',
+    role: 'ADMIN', // Administrador do sistema
     status: 'APPROVED',
   },
 ];

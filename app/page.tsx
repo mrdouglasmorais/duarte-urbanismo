@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import SEO from '@/components/SEO';
 import { toastSuccess, toastError, toastWarning } from '@/lib/toast';
 import { Footer } from '@/components/Footer';
+import type { Corretor } from '@/types/sgci';
 
 const dadosEmpreendimento = {
   titulo: 'Pôr do Sol Eco Village',
@@ -30,30 +31,7 @@ const estatisticas = [
   { valor: '100%', unidade: '', descricao: 'Sustentável' }
 ];
 
-const corretores = [
-  {
-    id: 'cor-daniel-duarte',
-    nome: 'Daniel Duarte',
-    cargo: 'Diretor Geral',
-    creci: '',
-    telefone: '48 9211-2284',
-    whatsapp: '554892112284',
-    areaAtuacao: 'Direção e Gestão',
-    foto: '/corretores/daniel-duarte.JPG',
-    destaque: true
-  },
-  {
-    id: 'cor-gelvane-silva',
-    nome: 'Gelvane Silva',
-    cargo: 'Chefe de Vendas',
-    creci: '',
-    telefone: '48 9211-2284',
-    whatsapp: '554892112284',
-    areaAtuacao: 'Vendas e Negociações',
-    foto: '/corretores/gelvane-silva.JPG',
-    destaque: true
-  }
-];
+// Corretores serão carregados do MongoDB
 
 const galleryImages = [
   'images/page_2_img_2.jpg',
@@ -117,6 +95,7 @@ export default function LandingPage() {
   const [zoomImage, setZoomImage] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
+  const [corretores, setCorretores] = useState<Corretor[]>([]);
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -135,6 +114,22 @@ export default function LandingPage() {
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 0.5], [1, 1.1]);
   const totalSlides = galleryImages.length;
+
+  // Carregar corretores do MongoDB
+  useEffect(() => {
+    async function loadCorretores() {
+      try {
+        const response = await fetch('/api/public/corretores', { cache: 'no-store' });
+        if (response.ok) {
+          const data = await response.json();
+          setCorretores(data || []);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar corretores:', error);
+      }
+    }
+    loadCorretores();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -1083,33 +1078,28 @@ export default function LandingPage() {
                 {corretores.map(corretor => (
                   <motion.div
                     key={corretor.id}
-                    className={`flex flex-col items-center text-center ${corretor.destaque ? 'relative' : ''}`}
+                    className="flex flex-col items-center text-center"
                     initial={{ opacity: 0, scale: 0.9 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5 }}
                   >
-                    {/* Badge de Destaque */}
-                    {corretor.destaque && (
-                      <div className="absolute -top-2 right-0 z-10 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-lg">
-                        {corretor.cargo}
+                    {/* Badge de Área de Atuação */}
+                    {corretor.areaAtuacao && (
+                      <div className="mb-2 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-lg">
+                        {corretor.areaAtuacao}
                       </div>
                     )}
 
-                    {/* Foto Redonda - Maior para destaques */}
-                    <div className={`mb-4 flex items-center justify-center overflow-hidden rounded-full shadow-lg transition hover:scale-105 hover:shadow-xl ${
-                      corretor.destaque
-                        ? 'h-40 w-40 border-4 border-emerald-500 ring-4 ring-emerald-100'
-                        : 'h-32 w-32 border-4 border-emerald-100'
-                    }`}>
+                    {/* Foto Redonda */}
+                    <div className="mb-4 flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-emerald-100 shadow-lg transition hover:scale-105 hover:shadow-xl">
                       <Image
-                        src={corretor.foto}
-                        alt={`${corretor.nome} - ${corretor.cargo}`}
-                        width={corretor.destaque ? 160 : 128}
-                        height={corretor.destaque ? 160 : 128}
+                        src={corretor.foto || '/logo_duarte_sem_fundo.png'}
+                        alt={`${corretor.nome}${corretor.areaAtuacao ? ` - ${corretor.areaAtuacao}` : ''}`}
+                        width={128}
+                        height={128}
                         className="h-full w-full rounded-full object-cover"
-                        sizes="(max-width: 640px) 128px, 160px"
-                        priority={corretor.destaque}
+                        sizes="128px"
                         unoptimized
                         onError={(e) => {
                           // Fallback para logo se foto não existir
@@ -1123,18 +1113,15 @@ export default function LandingPage() {
                     </div>
 
                     {/* Informações */}
-                    <h4 className={`font-bold text-slate-900 ${corretor.destaque ? 'text-2xl' : 'text-xl'}`}>
+                    <h4 className="text-xl font-bold text-slate-900">
                       {corretor.nome}
                     </h4>
-                    {corretor.cargo && !corretor.destaque && (
-                      <p className="mt-1 text-sm font-semibold text-emerald-600">{corretor.cargo}</p>
-                    )}
                     {corretor.creci && (
                       <p className="mt-1 text-sm font-semibold text-emerald-600">CRECI: {corretor.creci}</p>
                     )}
-                        {corretor.areaAtuacao && (
-                          <p className="mt-2 text-sm text-slate-600">{corretor.areaAtuacao}</p>
-                        )}
+                    {corretor.telefone && (
+                      <p className="mt-1 text-sm text-slate-600">{corretor.telefone}</p>
+                    )}
 
                     {/* Botão WhatsApp */}
                     <div className="mt-4">

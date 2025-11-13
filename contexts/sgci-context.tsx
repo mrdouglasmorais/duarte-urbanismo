@@ -3,7 +3,6 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState, startTransition } from 'react';
 import type { Cliente, Corretor, Empreendimento, Negociacao, Parcela, SgciState } from '@/types/sgci';
 import { format } from 'date-fns';
-import seedData from '@/lib/sgci/seed-data';
 
 type Action =
   | { type: 'HYDRATE'; payload: SgciState }
@@ -32,7 +31,12 @@ type Action =
   | { type: 'UPDATE_CORRETOR'; payload: { id: string; data: Partial<Corretor> } }
   | { type: 'DELETE_CORRETOR'; payload: string };
 
-const defaultState: SgciState = JSON.parse(JSON.stringify(seedData));
+const defaultState: SgciState = {
+  empreendimentos: [],
+  clientes: [],
+  negociacoes: [],
+  corretores: []
+};
 
 function reducer(state: SgciState, action: Action): SgciState {
   switch (action.type) {
@@ -167,33 +171,44 @@ export function SgciProvider({ children }: { children: React.ReactNode }) {
         const response = await fetch('/api/sgci/state', { cache: 'no-store' });
         if (response.ok) {
           const payload: SgciState = await response.json();
+          // Verificar se há dados no MongoDB
+          const hasData =
+            (payload.empreendimentos?.length ?? 0) > 0 ||
+            (payload.clientes?.length ?? 0) > 0 ||
+            (payload.negociacoes?.length ?? 0) > 0 ||
+            (payload.corretores?.length ?? 0) > 0;
+
           if (!cancelled) {
-            dispatch({ type: 'HYDRATE', payload: payload || defaultState });
-            skipNextSyncRef.current = true;
-            startTransition(() => setIsHydrated(true));
-            return;
+            if (hasData) {
+              // Dados existem no MongoDB, usar diretamente
+              dispatch({ type: 'HYDRATE', payload: payload });
+              skipNextSyncRef.current = true;
+              startTransition(() => setIsHydrated(true));
+              return;
+            } else {
+              // MongoDB vazio, fazer seed apenas uma vez
+              console.log('MongoDB vazio, executando seed inicial...');
+              try {
+                const seedResponse = await fetch('/api/sgci/seed', { method: 'POST' });
+                if (seedResponse.ok) {
+                  const seedPayload = await seedResponse.json();
+                  const statePayload: SgciState = seedPayload.state ?? payload;
+                  dispatch({ type: 'HYDRATE', payload: statePayload });
+                  skipNextSyncRef.current = true;
+                  startTransition(() => setIsHydrated(true));
+                  return;
+                }
+              } catch (seedError) {
+                console.error('Erro ao semear dados SGCI:', seedError);
+              }
+            }
           }
         }
       } catch (error) {
         console.error('Erro ao carregar dados SGCI do MongoDB:', error);
       }
 
-      try {
-        const seedResponse = await fetch('/api/sgci/seed', { method: 'POST' });
-        if (seedResponse.ok) {
-          const payload = await seedResponse.json();
-          if (!cancelled) {
-            const statePayload: SgciState = payload.state ?? defaultState;
-            dispatch({ type: 'HYDRATE', payload: statePayload });
-            skipNextSyncRef.current = true;
-            startTransition(() => setIsHydrated(true));
-            return;
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao semear dados SGCI:', error);
-      }
-
+      // Se chegou aqui, usar estado vazio
       if (!cancelled) {
         dispatch({ type: 'HYDRATE', payload: defaultState });
         skipNextSyncRef.current = true;

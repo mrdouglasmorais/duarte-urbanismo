@@ -181,20 +181,26 @@ const seedData: SgciState = {
   ],
   corretores: [
     {
-      id: 'cor-marcos-azevedo',
-      nome: 'Marcos Azevedo',
-      creci: '123456-SC',
-      email: 'marcos.azevedo@duarteurbanismo.com',
-      telefone: '48 99777-2200',
-      areaAtuacao: 'Florianópolis e região metropolitana'
+      id: 'cor-daniel-duarte',
+      nome: 'Daniel Duarte',
+      creci: 'CRECI-SC 59847',
+      email: 'daniel.duarte@duarteurbanismo.com',
+      telefone: '47 9211-2284',
+      whatsapp: '554792112284',
+      areaAtuacao: 'Direção e Gestão',
+      foto: '/corretores/daniel-duarte.JPG',
+      status: 'Aprovado'
     },
     {
-      id: 'cor-juliana-santos',
-      nome: 'Juliana Santos',
-      creci: '654321-SC',
-      email: 'juliana.santos@duarteurbanismo.com',
-      telefone: '48 99888-3300',
-      observacoes: 'Especialista em negociação corporativa'
+      id: 'cor-gelvane-silva',
+      nome: 'Gelvane Silva',
+      creci: 'CRECI-SC 59847',
+      email: 'gelvane.silva@duarteurbanismo.com',
+      telefone: '47 9211-2284',
+      whatsapp: '554792112284',
+      areaAtuacao: 'Vendas e Negociações',
+      foto: '/corretores/gelvane-silva.JPG',
+      status: 'Aprovado'
     }
   ]
 };
