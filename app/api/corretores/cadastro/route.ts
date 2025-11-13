@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         const extension = fotoFile.name.split('.').pop() || 'jpg';
         const filename = `corretor-${fotoId}.${extension}`;
         const publicDir = join(process.cwd(), 'public', 'corretores');
-        
+
         // Criar diretório se não existir
         const { mkdir } = await import('fs/promises');
         try {

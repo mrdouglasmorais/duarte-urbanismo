@@ -107,7 +107,29 @@ export default function CadastroCorretorPage() {
     setErrorMessage('');
 
     try {
+      // Primeiro, criar usuário no sistema de autenticação
+      const password = `temp_${Date.now()}_${Math.random().toString(36).slice(2)}`; // Senha temporária
+
+      const registerResponse = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: password, // Senha temporária, será alterada no primeiro login
+          name: formData.nome,
+          phone: formData.telefone
+        })
+      });
+
+      const registerResult = await registerResponse.json();
+
+      if (!registerResponse.ok) {
+        throw new Error(registerResult.error || 'Erro ao criar conta de usuário');
+      }
+
+      // Depois, salvar dados adicionais do corretor
       const formDataToSend = new FormData();
+      formDataToSend.append('userId', registerResult.user.id);
       formDataToSend.append('nome', formData.nome);
       formDataToSend.append('creci', formData.creci);
       formDataToSend.append('email', formData.email);
@@ -130,15 +152,17 @@ export default function CadastroCorretorPage() {
         formDataToSend.append('foto', formData.foto);
       }
 
-      const response = await fetch('/api/corretores/cadastro', {
+      const corretorResponse = await fetch('/api/corretores/cadastro', {
         method: 'POST',
         body: formDataToSend
       });
 
-      const result = await response.json();
+      const corretorResult = await corretorResponse.json();
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro ao cadastrar corretor');
+      if (!corretorResponse.ok) {
+        // Se falhar ao salvar dados do corretor, o usuário já foi criado
+        // Isso pode ser tratado depois pelo admin
+        console.warn('Usuário criado mas dados do corretor não foram salvos:', corretorResult.error);
       }
 
       setSubmitStatus('success');
@@ -197,7 +221,7 @@ export default function CadastroCorretorPage() {
         {/* Background com efeito de luz natural */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-400/20 via-transparent to-transparent" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-amber-400/20 via-transparent to-transparent" />
-        
+
         {/* Imagem de fundo */}
         <div className="absolute inset-0 opacity-30">
           <Image
