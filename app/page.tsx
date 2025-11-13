@@ -333,11 +333,10 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
             className="mb-6 text-6xl font-bold tracking-tight md:text-8xl lg:text-9xl"
-            style={{ fontFamily: 'var(--font-playfair), serif' }}
           >
-            PÔR DO SOL
+            <span style={{ fontFamily: 'var(--font-ephesis), cursive' }}>PÔR DO SOL</span>
             <br />
-            <span className="bg-linear-to-r from-emerald-300 via-amber-200 to-emerald-300 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-emerald-300 via-amber-200 to-emerald-300 bg-clip-text text-transparent" style={{ fontFamily: 'var(--font-ephesis), cursive' }}>
               ECO VILLAGE
             </span>
           </motion.h1>
@@ -346,8 +345,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="mb-12 max-w-2xl text-2xl text-white/90 md:text-3xl"
-            style={{ fontFamily: 'var(--font-ephesis), cursive' }}
+            className="mb-12 max-w-2xl text-xl text-white/90 md:text-2xl"
           >
             O condomínio residencial mais sustentável e elegante de Tijucas
           </motion.p>
@@ -362,15 +360,13 @@ export default function LandingPage() {
               href="https://wa.me/554792112284?text=Ol%C3%A1%2C+tenho+interesse+no+empreendimento+P%C3%B4r+do+Sol+Eco+Village."
               target="_blank"
               rel="noreferrer"
-              className="group rounded-full bg-white px-8 py-4 text-xl font-normal tracking-wide text-emerald-900 transition-all hover:scale-105 hover:shadow-2xl"
-              style={{ fontFamily: 'var(--font-ephesis), cursive' }}
+              className="group rounded-full bg-white px-8 py-4 text-base font-semibold uppercase tracking-[0.2em] text-emerald-900 transition-all hover:scale-105 hover:shadow-2xl"
             >
               Saiba Mais
             </a>
             <Link
               href="/login"
-              className="rounded-full border-2 border-white/80 bg-white/10 px-8 py-4 text-xl font-normal tracking-wide text-white backdrop-blur transition-all hover:bg-white/20"
-              style={{ fontFamily: 'var(--font-ephesis), cursive' }}
+              className="rounded-full border-2 border-white/80 bg-white/10 px-8 py-4 text-base font-semibold uppercase tracking-[0.2em] text-white backdrop-blur transition-all hover:bg-white/20"
             >
               Acessar Painel
             </Link>
@@ -442,8 +438,7 @@ export default function LandingPage() {
               href="https://wa.me/554792112284?text=Ol%C3%A1%2C+tenho+interesse+no+empreendimento+P%C3%B4r+do+Sol+Eco+Village."
               target="_blank"
               rel="noreferrer"
-              className="inline-block rounded-full bg-white px-8 py-4 text-xl font-normal tracking-wide text-emerald-900 transition-all hover:scale-105"
-              style={{ fontFamily: 'var(--font-ephesis), cursive' }}
+              className="inline-block rounded-full bg-white px-8 py-4 text-base font-semibold uppercase tracking-[0.2em] text-emerald-900 transition-all hover:scale-105"
             >
               Saiba Mais
             </a>
@@ -493,10 +488,10 @@ export default function LandingPage() {
             transition={{ duration: 0.8 }}
           >
             <p className="text-sm uppercase tracking-[0.5em] text-emerald-600">Filosofia</p>
-            <h2 className="text-5xl font-bold leading-tight text-slate-900 md:text-6xl" style={{ fontFamily: 'var(--font-playfair), serif' }}>
-              INSPIRADO NA HARMONIA
+            <h2 className="text-5xl font-bold leading-tight text-slate-900 md:text-6xl">
+              <span style={{ fontFamily: 'var(--font-ephesis), cursive' }}>INSPIRADO NA HARMONIA</span>
               <br />
-              <span className="bg-linear-to-r from-emerald-600 to-amber-600 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-emerald-600 to-amber-600 bg-clip-text text-transparent" style={{ fontFamily: 'var(--font-ephesis), cursive' }}>
                 COM A NATUREZA
               </span>
             </h2>
@@ -513,8 +508,7 @@ export default function LandingPage() {
               href="https://wa.me/554792112284?text=Ol%C3%A1%2C+tenho+interesse+no+empreendimento+P%C3%B4r+do+Sol+Eco+Village."
               target="_blank"
               rel="noreferrer"
-              className="inline-block rounded-full bg-emerald-600 px-8 py-4 text-xl font-normal tracking-wide text-white transition-all hover:scale-105"
-              style={{ fontFamily: 'var(--font-ephesis), cursive' }}
+              className="inline-block rounded-full bg-emerald-600 px-8 py-4 text-base font-semibold uppercase tracking-[0.2em] text-white transition-all hover:scale-105"
             >
               Saiba Mais
             </a>
@@ -574,7 +568,7 @@ export default function LandingPage() {
               transition={{ duration: 0.8 }}
             >
               <p className="text-sm uppercase tracking-[0.5em] text-emerald-600">Residências</p>
-              <h2 className="text-5xl font-bold leading-tight text-slate-900 md:text-6xl" style={{ fontFamily: 'var(--font-playfair), serif' }}>
+              <h2 className="text-5xl font-bold leading-tight text-slate-900 md:text-6xl" style={{ fontFamily: 'var(--font-ephesis), cursive' }}>
                 CHÁCARAS
               </h2>
               <p className="text-lg leading-relaxed text-slate-700">
@@ -726,8 +720,7 @@ export default function LandingPage() {
               href="https://wa.me/554792112284?text=Ol%C3%A1%2C+tenho+interesse+no+empreendimento+P%C3%B4r+do+Sol+Eco+Village."
               target="_blank"
               rel="noreferrer"
-              className="inline-block rounded-full bg-emerald-600 px-8 py-4 text-xl font-normal tracking-wide text-white transition-all hover:scale-105"
-              style={{ fontFamily: 'var(--font-ephesis), cursive' }}
+              className="inline-block rounded-full bg-emerald-600 px-8 py-4 text-base font-semibold uppercase tracking-[0.2em] text-white transition-all hover:scale-105"
             >
               Saiba Mais
             </a>
@@ -886,9 +879,7 @@ export default function LandingPage() {
             <h2 className="mt-2 text-4xl font-bold text-slate-900 md:text-5xl lg:text-6xl" style={{ fontFamily: 'var(--font-playfair), serif' }}>
               CORRETORES DE PLANTÃO
             </h2>
-            <p className="mt-4 text-xl text-slate-600" style={{ fontFamily: 'var(--font-ephesis), cursive' }}>
-              Nossa equipe está pronta para atender você
-            </p>
+            <p className="mt-4 text-lg text-slate-600">Nossa equipe está pronta para atender você</p>
           </motion.div>
 
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
@@ -1089,8 +1080,7 @@ export default function LandingPage() {
 
                   <button
                     type="submit"
-                    className="w-full rounded-full bg-emerald-600 px-8 py-4 text-xl font-normal tracking-wide text-white transition-all hover:scale-105 hover:bg-emerald-700"
-                    style={{ fontFamily: 'var(--font-ephesis), cursive' }}
+                    className="w-full rounded-full bg-emerald-600 px-8 py-4 text-base font-semibold uppercase tracking-[0.2em] text-white transition-all hover:scale-105 hover:bg-emerald-700"
                   >
                     Enviar Solicitação
                   </button>
