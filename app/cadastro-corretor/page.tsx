@@ -50,10 +50,10 @@ export default function CadastroCorretorPage() {
     foto: null,
     fotoPreview: null,
     endereco: '',
-    cep: '',
-    cidade: '',
-    estado: '',
-    bancoNome: '',
+        cep: '',
+        cidade: '',
+        estado: 'SC',
+        bancoNome: '',
     bancoAgencia: '',
     bancoConta: '',
     bancoTipoConta: '',
@@ -71,9 +71,9 @@ export default function CadastroCorretorPage() {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
-    setFormData(prev => ({ 
-      ...prev, 
-      [name]: type === 'checkbox' ? checked : value 
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -210,7 +210,7 @@ export default function CadastroCorretorPage() {
         endereco: '',
         cep: '',
         cidade: '',
-        estado: '',
+        estado: 'SC',
         bancoNome: '',
         bancoAgencia: '',
         bancoConta: '',
@@ -589,59 +589,69 @@ export default function CadastroCorretorPage() {
 
                       <div>
                         <label htmlFor="cidade" className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
-                          Cidade
+                          Cidade *
                         </label>
-                        <input
-                          type="text"
+                        <select
                           id="cidade"
                           name="cidade"
+                          required
                           value={formData.cidade}
                           onChange={handleInputChange}
                           className="w-full rounded-2xl border border-slate-200/70 bg-white/80 px-5 py-3.5 text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-sm"
-                          placeholder="Sua cidade"
-                        />
+                        >
+                          <option value="">Selecione sua cidade</option>
+                          <option value="São João Batista">São João Batista</option>
+                          <option value="Florianópolis">Florianópolis</option>
+                          <option value="Palhoça">Palhoça</option>
+                          <option value="São José">São José</option>
+                          <option value="Biguaçu">Biguaçu</option>
+                          <option value="Governador Celso Ramos">Governador Celso Ramos</option>
+                          <option value="Tijucas">Tijucas</option>
+                          <option value="Itapema">Itapema</option>
+                          <option value="Balneário Camboriú">Balneário Camboriú</option>
+                          <option value="Camboriú">Camboriú</option>
+                          <option value="Bombinhas">Bombinhas</option>
+                          <option value="Porto Belo">Porto Belo</option>
+                          <option value="Navegantes">Navegantes</option>
+                          <option value="Itajaí">Itajaí</option>
+                          <option value="Barra Velha">Barra Velha</option>
+                          <option value="Penha">Penha</option>
+                          <option value="Piçarras">Piçarras</option>
+                          <option value="Balneário Piçarras">Balneário Piçarras</option>
+                          <option value="São Francisco do Sul">São Francisco do Sul</option>
+                          <option value="Joinville">Joinville</option>
+                          <option value="Garopaba">Garopaba</option>
+                          <option value="Imbituba">Imbituba</option>
+                          <option value="Laguna">Laguna</option>
+                          <option value="Tubarão">Tubarão</option>
+                          <option value="Imaruí">Imaruí</option>
+                          <option value="Paulo Lopes">Paulo Lopes</option>
+                          <option value="Governador Celso Ramos">Governador Celso Ramos</option>
+                          <option value="Canasvieiras">Canasvieiras</option>
+                          <option value="Jurerê Internacional">Jurerê Internacional</option>
+                          <option value="Ingleses">Ingleses</option>
+                          <option value="Barra da Lagoa">Barra da Lagoa</option>
+                          <option value="Lagoa da Conceição">Lagoa da Conceição</option>
+                          <option value="Santo Antônio de Lisboa">Santo Antônio de Lisboa</option>
+                          <option value="Ribeirão da Ilha">Ribeirão da Ilha</option>
+                          <option value="Campeche">Campeche</option>
+                          <option value="Pântano do Sul">Pântano do Sul</option>
+                        </select>
+                        <p className="mt-1 text-xs text-slate-500">Região litorânea de Santa Catarina</p>
                       </div>
 
                       <div>
                         <label htmlFor="estado" className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
                           Estado
                         </label>
-                        <select
+                        <input
+                          type="text"
                           id="estado"
                           name="estado"
-                          value={formData.estado}
-                          onChange={handleInputChange}
-                          className="w-full rounded-2xl border border-slate-200/70 bg-white/80 px-5 py-3.5 text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-sm"
-                        >
-                          <option value="">Selecione</option>
-                          <option value="AC">Acre</option>
-                          <option value="AL">Alagoas</option>
-                          <option value="AP">Amapá</option>
-                          <option value="AM">Amazonas</option>
-                          <option value="BA">Bahia</option>
-                          <option value="CE">Ceará</option>
-                          <option value="DF">Distrito Federal</option>
-                          <option value="ES">Espírito Santo</option>
-                          <option value="GO">Goiás</option>
-                          <option value="MA">Maranhão</option>
-                          <option value="MT">Mato Grosso</option>
-                          <option value="MS">Mato Grosso do Sul</option>
-                          <option value="MG">Minas Gerais</option>
-                          <option value="PA">Pará</option>
-                          <option value="PB">Paraíba</option>
-                          <option value="PR">Paraná</option>
-                          <option value="PE">Pernambuco</option>
-                          <option value="PI">Piauí</option>
-                          <option value="RJ">Rio de Janeiro</option>
-                          <option value="RN">Rio Grande do Norte</option>
-                          <option value="RS">Rio Grande do Sul</option>
-                          <option value="RO">Rondônia</option>
-                          <option value="RR">Roraima</option>
-                          <option value="SC">Santa Catarina</option>
-                          <option value="SP">São Paulo</option>
-                          <option value="SE">Sergipe</option>
-                          <option value="TO">Tocantins</option>
-                        </select>
+                          value="Santa Catarina"
+                          readOnly
+                          className="w-full rounded-2xl border border-slate-200/70 bg-slate-100/50 px-5 py-3.5 text-slate-600 cursor-not-allowed shadow-sm"
+                        />
                       </div>
                     </div>
                   </motion.div>
@@ -910,17 +920,17 @@ export default function CadastroCorretorPage() {
               <h1 className="text-3xl font-bold text-slate-900 mb-6" style={{ fontFamily: 'var(--font-playfair), serif' }}>
                 Termo de Aceite e Contrato de Corretor Parceiro
               </h1>
-              
+
               <div className="space-y-6 text-slate-700">
                 <section>
                   <h2 className="text-xl font-bold text-slate-900 mb-3">1. PARTES CONTRATANTES</h2>
                   <p>
-                    <strong>CONTRATADA:</strong> DUARTE URBANISMO LTDA, inscrita no CNPJ sob o nº 47.200.760/0001-06, 
-                    com sede na Rua José Antonio da Silva, 152 · Sala 03, Escritório 81, Centro, 
+                    <strong>CONTRATADA:</strong> DUARTE URBANISMO LTDA, inscrita no CNPJ sob o nº 47.200.760/0001-06,
+                    com sede na Rua José Antonio da Silva, 152 · Sala 03, Escritório 81, Centro,
                     São João Batista/SC, CEP 88.240-000.
                   </p>
                   <p className="mt-2">
-                    <strong>CONTRATANTE:</strong> O corretor de imóveis que preenche este cadastro, 
+                    <strong>CONTRATANTE:</strong> O corretor de imóveis que preenche este cadastro,
                     devidamente registrado no CRECI (Conselho Regional de Corretores de Imóveis).
                   </p>
                 </section>
@@ -928,8 +938,8 @@ export default function CadastroCorretorPage() {
                 <section>
                   <h2 className="text-xl font-bold text-slate-900 mb-3">2. OBJETO DO CONTRATO</h2>
                   <p>
-                    O presente contrato tem por objeto estabelecer as condições de parceria entre a CONTRATADA 
-                    e o CONTRATANTE para a comercialização de empreendimentos imobiliários desenvolvidos pela CONTRATADA, 
+                    O presente contrato tem por objeto estabelecer as condições de parceria entre a CONTRATADA
+                    e o CONTRATANTE para a comercialização de empreendimentos imobiliários desenvolvidos pela CONTRATADA,
                     mediante a intermediação de negócios imobiliários.
                   </p>
                 </section>
@@ -963,13 +973,13 @@ export default function CadastroCorretorPage() {
                 <section>
                   <h2 className="text-xl font-bold text-slate-900 mb-3">5. COMISSÕES</h2>
                   <p>
-                    As comissões serão calculadas e pagas conforme critérios estabelecidos pela CONTRATADA, 
-                    que serão comunicados ao CONTRATANTE por ocasião da aprovação de seu cadastro e poderão 
+                    As comissões serão calculadas e pagas conforme critérios estabelecidos pela CONTRATADA,
+                    que serão comunicados ao CONTRATANTE por ocasião da aprovação de seu cadastro e poderão
                     ser atualizados mediante comunicação prévia.
                   </p>
                   <p className="mt-2">
-                    <strong>Observação:</strong> Os percentuais e condições específicas de comissão serão 
-                    definidos e comunicados individualmente após a aprovação do cadastro e análise do perfil 
+                    <strong>Observação:</strong> Os percentuais e condições específicas de comissão serão
+                    definidos e comunicados individualmente após a aprovação do cadastro e análise do perfil
                     do corretor parceiro.
                   </p>
                   <ul className="list-disc pl-6 space-y-2 mt-3">
@@ -983,12 +993,12 @@ export default function CadastroCorretorPage() {
                 <section>
                   <h2 className="text-xl font-bold text-slate-900 mb-3">6. APROVAÇÃO DO CADASTRO</h2>
                   <p>
-                    O cadastro do CONTRATANTE está sujeito à aprovação da CONTRATADA. A CONTRATADA se reserva 
-                    o direito de aprovar ou reprovar cadastros conforme critérios próprios, não sendo obrigada 
+                    O cadastro do CONTRATANTE está sujeito à aprovação da CONTRATADA. A CONTRATADA se reserva
+                    o direito de aprovar ou reprovar cadastros conforme critérios próprios, não sendo obrigada
                     a justificar a decisão.
                   </p>
                   <p className="mt-2">
-                    Apenas após a aprovação do cadastro e comunicação ao CONTRATANTE, o presente contrato 
+                    Apenas após a aprovação do cadastro e comunicação ao CONTRATANTE, o presente contrato
                     entrará em vigor.
                   </p>
                 </section>
@@ -996,11 +1006,11 @@ export default function CadastroCorretorPage() {
                 <section>
                   <h2 className="text-xl font-bold text-slate-900 mb-3">7. VIGÊNCIA E RESCISÃO</h2>
                   <p>
-                    Este contrato terá vigência indeterminada, podendo ser rescindido por qualquer das partes, 
+                    Este contrato terá vigência indeterminada, podendo ser rescindido por qualquer das partes,
                     mediante comunicação prévia de 30 (trinta) dias.
                   </p>
                   <p className="mt-2">
-                    A CONTRATADA poderá rescindir imediatamente o contrato em caso de descumprimento das 
+                    A CONTRATADA poderá rescindir imediatamente o contrato em caso de descumprimento das
                     obrigações pelo CONTRATANTE ou por atos que comprometam a imagem da CONTRATADA.
                   </p>
                 </section>
@@ -1008,8 +1018,8 @@ export default function CadastroCorretorPage() {
                 <section>
                   <h2 className="text-xl font-bold text-slate-900 mb-3">8. CONFIDENCIALIDADE</h2>
                   <p>
-                    O CONTRATANTE compromete-se a manter absoluto sigilo sobre todas as informações confidenciais 
-                    da CONTRATADA, incluindo estratégias comerciais, dados de clientes, condições de negociação 
+                    O CONTRATANTE compromete-se a manter absoluto sigilo sobre todas as informações confidenciais
+                    da CONTRATADA, incluindo estratégias comerciais, dados de clientes, condições de negociação
                     e demais informações de natureza sigilosa.
                   </p>
                 </section>
@@ -1017,8 +1027,8 @@ export default function CadastroCorretorPage() {
                 <section>
                   <h2 className="text-xl font-bold text-slate-900 mb-3">9. PROPRIEDADE INTELECTUAL</h2>
                   <p>
-                    Todos os materiais de marketing, marcas, logotipos e demais elementos de propriedade intelectual 
-                    da CONTRATADA são de uso exclusivo para fins de comercialização dos empreendimentos e não podem 
+                    Todos os materiais de marketing, marcas, logotipos e demais elementos de propriedade intelectual
+                    da CONTRATADA são de uso exclusivo para fins de comercialização dos empreendimentos e não podem
                     ser utilizados para outros fins sem autorização prévia.
                   </p>
                 </section>
@@ -1026,8 +1036,8 @@ export default function CadastroCorretorPage() {
                 <section>
                   <h2 className="text-xl font-bold text-slate-900 mb-3">10. DADOS PESSOAIS</h2>
                   <p>
-                    A CONTRATADA compromete-se a tratar os dados pessoais do CONTRATANTE em conformidade com a 
-                    Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018), utilizando-os exclusivamente 
+                    A CONTRATADA compromete-se a tratar os dados pessoais do CONTRATANTE em conformidade com a
+                    Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018), utilizando-os exclusivamente
                     para fins de execução deste contrato e comunicação relacionada à parceria.
                   </p>
                 </section>
@@ -1035,14 +1045,14 @@ export default function CadastroCorretorPage() {
                 <section>
                   <h2 className="text-xl font-bold text-slate-900 mb-3">11. FORO</h2>
                   <p>
-                    Fica eleito o foro da comarca de São João Batista/SC para dirimir quaisquer controvérsias 
+                    Fica eleito o foro da comarca de São João Batista/SC para dirimir quaisquer controvérsias
                     decorrentes deste contrato.
                   </p>
                 </section>
 
                 <section className="border-t-2 border-slate-200 pt-6">
                   <p className="text-sm text-slate-600 italic">
-                    Ao marcar a opção de aceite, o CONTRATANTE declara que leu, compreendeu e concorda com 
+                    Ao marcar a opção de aceite, o CONTRATANTE declara que leu, compreendeu e concorda com
                     todas as cláusulas deste contrato, comprometendo-se a cumpri-las integralmente.
                   </p>
                   <p className="text-sm text-slate-600 italic mt-2">
