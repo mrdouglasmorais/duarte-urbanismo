@@ -24,7 +24,6 @@ const UserSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
-      index: true,
     },
     passwordHash: {
       type: String,
@@ -61,7 +60,7 @@ const UserSchema = new Schema<IUser>(
 );
 
 // Índices
-UserSchema.index({ email: 1 });
+// email já tem índice único através de unique: true
 UserSchema.index({ status: 1 });
 UserSchema.index({ role: 1 });
 

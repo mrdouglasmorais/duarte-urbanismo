@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
         {
           error: 'Já existe um SUPER_ADMIN aprovado no sistema',
           existingAdmin: {
-            id: existingAdmin._id.toString(),
+            id: String(existingAdmin._id),
             email: existingAdmin.email,
             name: existingAdmin.name,
           }
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
           success: true,
           message: 'Usuário atualizado para SUPER_ADMIN',
           user: {
-            id: existingUser._id.toString(),
+            id: String(existingUser._id),
             email: existingUser.email,
             name: existingUser.name,
             role: existingUser.role,
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'SUPER_ADMIN criado com sucesso',
         user: {
-          id: user._id.toString(),
+          id: String(user._id),
           email: user.email,
           name: user.name,
           role: user.role,

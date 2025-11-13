@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import SEO from '@/components/SEO';
 
 const dadosEmpreendimento = {
   titulo: 'Pôr do Sol Eco Village',
@@ -29,20 +30,26 @@ const estatisticas = [
 
 const corretores = [
   {
-    id: 'cor-marcos-azevedo',
-    nome: 'Marcos Azevedo',
-    creci: '123456-SC',
-    email: 'marcos.azevedo@duarteurbanismo.com',
-    telefone: '48 99777-2200',
-    areaAtuacao: 'Florianópolis e região metropolitana'
+    id: 'cor-daniel-duarte',
+    nome: 'Daniel Duarte',
+    cargo: 'Diretor Geral',
+    creci: '',
+    telefone: '48 9211-2284',
+    whatsapp: '554892112284',
+    areaAtuacao: 'Direção e Gestão',
+    foto: '/corretores/daniel-duarte.JPG',
+    destaque: true
   },
   {
-    id: 'cor-juliana-santos',
-    nome: 'Juliana Santos',
-    creci: '654321-SC',
-    email: 'juliana.santos@duarteurbanismo.com',
-    telefone: '48 99888-3300',
-    areaAtuacao: 'Especialista em negociação corporativa'
+    id: 'cor-gelvane-silva',
+    nome: 'Gelvane Silva',
+    cargo: 'Chefe de Vendas',
+    creci: '',
+    telefone: '48 9211-2284',
+    whatsapp: '554892112284',
+    areaAtuacao: 'Vendas e Negociações',
+    foto: '/corretores/gelvane-silva.JPG',
+    destaque: true
   }
 ];
 
@@ -202,8 +209,10 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
-      {/* Navegação Sticky */}
+    <>
+      <SEO />
+      <div className="min-h-screen bg-white text-slate-900">
+        {/* Navegação Sticky */}
       <motion.nav
         className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/60 shadow-sm"
         initial={{ y: -100 }}
@@ -334,9 +343,9 @@ export default function LandingPage() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="mb-6 text-6xl font-bold tracking-tight md:text-8xl lg:text-9xl"
           >
-            <span style={{ fontFamily: 'var(--font-ephesis), cursive' }}>PÔR DO SOL</span>
+            PÔR DO SOL
             <br />
-            <span className="bg-linear-to-r from-emerald-300 via-amber-200 to-emerald-300 bg-clip-text text-transparent" style={{ fontFamily: 'var(--font-ephesis), cursive' }}>
+            <span className="bg-linear-to-r from-emerald-300 via-amber-200 to-emerald-300 bg-clip-text text-transparent">
               ECO VILLAGE
             </span>
           </motion.h1>
@@ -365,10 +374,10 @@ export default function LandingPage() {
               Saiba Mais
             </a>
             <Link
-              href="/login"
+              href="/area-cliente"
               className="rounded-full border-2 border-white/80 bg-white/10 px-8 py-4 text-base font-semibold uppercase tracking-[0.2em] text-white backdrop-blur transition-all hover:bg-white/20"
             >
-              Acessar Painel
+              Acessar a área do cliente
             </Link>
           </motion.div>
         </div>
@@ -489,9 +498,9 @@ export default function LandingPage() {
           >
             <p className="text-sm uppercase tracking-[0.5em] text-emerald-600">Filosofia</p>
             <h2 className="text-5xl font-bold leading-tight text-slate-900 md:text-6xl">
-              <span style={{ fontFamily: 'var(--font-ephesis), cursive' }}>INSPIRADO NA HARMONIA</span>
+              INSPIRADO NA HARMONIA
               <br />
-              <span className="bg-linear-to-r from-emerald-600 to-amber-600 bg-clip-text text-transparent" style={{ fontFamily: 'var(--font-ephesis), cursive' }}>
+              <span className="bg-linear-to-r from-emerald-600 to-amber-600 bg-clip-text text-transparent">
                 COM A NATUREZA
               </span>
             </h2>
@@ -568,7 +577,7 @@ export default function LandingPage() {
               transition={{ duration: 0.8 }}
             >
               <p className="text-sm uppercase tracking-[0.5em] text-emerald-600">Residências</p>
-              <h2 className="text-5xl font-bold leading-tight text-slate-900 md:text-6xl" style={{ fontFamily: 'var(--font-ephesis), cursive' }}>
+              <h2 className="text-5xl font-bold leading-tight text-slate-900 md:text-6xl">
                 CHÁCARAS
               </h2>
               <p className="text-lg leading-relaxed text-slate-700">
@@ -689,13 +698,27 @@ export default function LandingPage() {
           >
             <div className="space-y-4">
               <p className="text-lg leading-relaxed text-slate-700">
-                Localizado a apenas 4 km do Centro de Tijucas, no Bairro Itinga, o Pôr do Sol Eco Village oferece o melhor dos
+                Localizado no Bairro Rio da Dona, o Pôr do Sol Eco Village oferece o melhor dos
                 dois mundos: a tranquilidade do campo com a conveniência da cidade.
               </p>
               <p className="text-lg leading-relaxed text-slate-700">
                 Tijucas é uma cidade em constante crescimento, com fácil acesso à BR-101, praias paradisíacas, comércio completo
                 e toda a infraestrutura necessária para uma vida plena.
               </p>
+              <div className="mt-6 space-y-3">
+                <div className="flex items-start gap-3">
+                  <svg className="h-6 w-6 flex-shrink-0 text-emerald-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <div>
+                    <p className="font-semibold text-slate-900">Endereço do Empreendimento</p>
+                    <p className="text-slate-700">Estrada Geral Rio da Dona, s/n</p>
+                    <p className="text-slate-700">Bairro Rio da Dona</p>
+                    <p className="text-slate-700">Tijucas - SC</p>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="space-y-4">
               <p className="text-lg leading-relaxed text-slate-700">
@@ -706,6 +729,52 @@ export default function LandingPage() {
                 Aqui você encontra escolas, hospitais, shopping centers e uma vida social ativa, tudo a poucos minutos do seu
                 refúgio ecológico.
               </p>
+            </div>
+          </motion.div>
+
+          {/* Mapa e Link Waze */}
+          <motion.div
+            className="mt-12"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <div className="mb-6 text-center">
+              <h3 className="mb-2 text-2xl font-bold text-slate-900" style={{ fontFamily: 'var(--font-playfair), serif' }}>
+                Como Chegar
+              </h3>
+              <p className="text-slate-600">Use o mapa abaixo ou abra no Waze para navegação</p>
+            </div>
+
+            {/* Mapa Google Maps */}
+            <div className="mb-6 overflow-hidden rounded-[40px] shadow-2xl">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3559.5!2d-48.6339!3d-27.2406!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjfCsDE0JzI2LjIiUyA0OMKwMzgnMDIuMCJX!5e0!3m2!1spt-BR!2sbr!4v1234567890"
+                width="100%"
+                height="450"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="w-full"
+                title="Localização Pôr do Sol Eco Village"
+              />
+            </div>
+
+            {/* Botão Waze */}
+            <div className="flex justify-center">
+              <a
+                href="https://waze.com/ul?ll=-27.2406,-48.6339&navigate=yes"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-3 rounded-full bg-[#33CCFF] px-8 py-4 text-base font-semibold uppercase tracking-[0.2em] text-white transition-all hover:scale-105 hover:shadow-xl"
+              >
+                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-11V6h2v5h5v2h-5v5h-2v-5H6v-2h5z"/>
+                </svg>
+                Abrir no Waze
+              </a>
             </div>
           </motion.div>
 
@@ -892,42 +961,77 @@ export default function LandingPage() {
               transition={{ duration: 0.8 }}
             >
               <h3 className="text-2xl font-bold text-slate-900">Nossa Equipe</h3>
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
                 {corretores.map(corretor => (
-                  <div
+                  <motion.div
                     key={corretor.id}
-                    className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg transition hover:shadow-xl"
+                    className={`flex flex-col items-center text-center ${corretor.destaque ? 'relative' : ''}`}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5 }}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="text-xl font-bold text-slate-900">{corretor.nome}</h4>
-                        <p className="mt-1 text-sm text-slate-500">CRECI: {corretor.creci}</p>
-                        {corretor.areaAtuacao && (
-                          <p className="mt-2 text-sm text-slate-600">{corretor.areaAtuacao}</p>
-                        )}
-                        <div className="mt-4 flex flex-wrap gap-3">
-                          <a
-                            href={`tel:${corretor.telefone.replace(/\s/g, '')}`}
-                            className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
-                          >
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                            </svg>
-                            {corretor.telefone}
-                          </a>
-                          <a
-                            href={`mailto:${corretor.email}`}
-                            className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                          >
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
-                            Email
-                          </a>
-                        </div>
+                    {/* Badge de Destaque */}
+                    {corretor.destaque && (
+                      <div className="absolute -top-2 right-0 z-10 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-lg">
+                        {corretor.cargo}
                       </div>
+                    )}
+
+                    {/* Foto Redonda - Maior para destaques */}
+                    <div className={`relative mb-4 overflow-hidden rounded-full shadow-lg transition hover:scale-105 hover:shadow-xl ${
+                      corretor.destaque
+                        ? 'h-40 w-40 border-4 border-emerald-500 ring-4 ring-emerald-100'
+                        : 'h-32 w-32 border-4 border-emerald-100'
+                    }`}>
+                      <Image
+                        src={corretor.foto}
+                        alt={`${corretor.nome} - ${corretor.cargo}`}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 128px, 160px"
+                        priority={corretor.destaque}
+                        unoptimized
+                        onError={(e) => {
+                          // Fallback para logo se foto não existir
+                          const target = e.target as HTMLImageElement;
+                          const currentSrc = target.getAttribute('src') || '';
+                          if (!currentSrc.includes('logo_duarte_sem_fundo.png')) {
+                            target.src = '/logo_duarte_sem_fundo.png';
+                          }
+                        }}
+                      />
                     </div>
-                  </div>
+
+                    {/* Informações */}
+                    <h4 className={`font-bold text-slate-900 ${corretor.destaque ? 'text-2xl' : 'text-xl'}`}>
+                      {corretor.nome}
+                    </h4>
+                    {corretor.cargo && !corretor.destaque && (
+                      <p className="mt-1 text-sm font-semibold text-emerald-600">{corretor.cargo}</p>
+                    )}
+                    {corretor.creci && (
+                      <p className="mt-1 text-sm font-semibold text-emerald-600">CRECI: {corretor.creci}</p>
+                    )}
+                    {corretor.areaAtuacao && (
+                      <p className="mt-2 text-sm text-slate-600">{corretor.areaAtuacao}</p>
+                    )}
+
+                    {/* Botão WhatsApp */}
+                    <div className="mt-4">
+                      <a
+                        href={`https://wa.me/${corretor.whatsapp}?text=Olá, ${corretor.nome}! Tenho interesse no empreendimento Pôr do Sol Eco Village.`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#20BA5A] hover:scale-105 shadow-lg"
+                      >
+                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                        </svg>
+                        Falar no WhatsApp
+                      </a>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             </motion.div>
@@ -1107,44 +1211,122 @@ export default function LandingPage() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-linear-to-br from-slate-900 via-slate-950 to-slate-900 py-12 text-white">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="mb-8 text-center">
-            <h4 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-playfair), serif' }}>
+      <footer className="relative border-t border-emerald-800/30 bg-gradient-to-br from-emerald-950 via-green-900 to-emerald-950 py-16 text-white">
+        {/* Efeito de luz sutil */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-400/20 via-transparent to-transparent" />
+
+        <div className="relative z-10 mx-auto max-w-7xl px-4">
+          {/* Título */}
+          <div className="mb-12 text-center">
+            <h4 className="text-2xl font-bold md:text-3xl" style={{ fontFamily: 'var(--font-playfair), serif' }}>
               O CONDOMÍNIO RESIDENCIAL MAIS SUSTENTÁVEL DE TIJUCAS
             </h4>
+            <div className="mx-auto mt-4 h-px w-24 bg-gradient-to-r from-transparent via-emerald-400 to-transparent" />
           </div>
-          <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
+
+          {/* Conteúdo principal */}
+          <div className="grid grid-cols-1 gap-12 md:grid-cols-3 lg:gap-16">
+            {/* Logo e Informações */}
             <div className="text-center md:text-left">
               <Image
                 src="/logo_duarte_sem_fundo.png"
                 alt="Duarte Urbanismo"
                 width={200}
                 height={65}
-                className="h-12 w-auto"
+                className="mx-auto h-14 w-auto md:mx-0"
               />
-              <p className="mt-4 text-sm text-white/70">
-                Rua José Antonio da Silva, 152 · Sala 03, Escritório 81, Centro
-                <br />
-                São João Batista/SC · CEP 88.240-000
-                <br />
-                Contato: +55 47 9211-2284
+              <p className="mt-6 text-sm leading-relaxed text-white/80">
+                Construindo sonhos com sustentabilidade e excelência.
               </p>
             </div>
-            <div className="flex flex-col gap-4 text-center md:text-right">
-              <Link
-                href="/login"
-                className="rounded-full border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white backdrop-blur transition hover:bg-white/20"
-              >
-                Acessar Painel
-              </Link>
-              <Link
-                href="/cadastro-corretor"
-                className="text-sm text-white/70 underline transition hover:text-white"
-              >
-                Cadastro de Corretor
-              </Link>
+
+            {/* Contato */}
+            <div className="space-y-4 text-center md:text-left">
+              <h5 className="text-lg font-bold text-emerald-300">Contato</h5>
+              <div className="space-y-3">
+                <a
+                  href="tel:+554792112284"
+                  className="flex items-center justify-center gap-3 text-sm text-white/80 transition hover:text-emerald-300 md:justify-start"
+                >
+                  <svg className="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  <span>+55 47 9211-2284</span>
+                </a>
+                <a
+                  href="https://wa.me/554792112284"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-3 text-sm text-white/80 transition hover:text-emerald-300 md:justify-start"
+                >
+                  <svg className="h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                  </svg>
+                  <span>WhatsApp</span>
+                </a>
+                <div className="flex items-start justify-center gap-3 text-sm text-white/80 md:justify-start">
+                  <svg className="h-5 w-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <div className="text-left">
+                    <p className="font-semibold">Escritório:</p>
+                    <p>Rua José Antonio da Silva, 152</p>
+                    <p>Sala 03, Escritório 81, Centro</p>
+                    <p>São João Batista/SC · CEP 88.240-000</p>
+                    <p className="mt-4 font-semibold">Empreendimento:</p>
+                    <p>Estrada Geral Rio da Dona, s/n</p>
+                    <p>Bairro Rio da Dona</p>
+                    <p>Tijucas - SC</p>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            {/* Links Rápidos */}
+            <div className="space-y-4 text-center md:text-left">
+              <h5 className="text-lg font-bold text-emerald-300">Links Rápidos</h5>
+              <div className="flex flex-col gap-3">
+                <Link
+                  href="/area-cliente"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/10 hover:border-emerald-400/50 md:justify-start"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  Área do Cliente
+                </Link>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/10 hover:border-emerald-400/50 md:justify-start"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Acessar Painel
+                </Link>
+                <Link
+                  href="/cadastro-corretor"
+                  className="inline-flex items-center justify-center gap-2 text-sm text-white/80 transition hover:text-emerald-300 md:justify-start"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Cadastro de Corretor
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Rodapé inferior */}
+          <div className="mt-12 border-t border-emerald-800/30 pt-8 text-center">
+            <p className="text-sm text-white/60">
+              © {new Date().getFullYear()} Duarte Urbanismo. Todos os direitos reservados.
+            </p>
+            <p className="mt-2 text-xs text-white/50">
+              Desenvolvido com dedicação para construir seu futuro sustentável.
+            </p>
           </div>
         </div>
       </footer>
@@ -1170,6 +1352,7 @@ export default function LandingPage() {
         </span>
         WhatsApp
       </a>
-    </div>
+      </div>
+    </>
   );
 }

@@ -11,7 +11,7 @@ export const BANCO_NOME = 'Banco';
 export const BANCO_AGENCIA = '0000';
 export const BANCO_CONTA = '00000-0';
 export const BANCO_TIPO_CONTA = 'Corrente';
-export const PIX_CHAVE = '356.372.638-84';
+export const PIX_CHAVE = '47.200.760/0001-06';
 
 export const APP_BASE_URL = 'https://duarte-urbanismo.vercel.app';
 export const HASH_SECRET = 'DUARTE_URBANISMO_QR_LEDGER_2024';

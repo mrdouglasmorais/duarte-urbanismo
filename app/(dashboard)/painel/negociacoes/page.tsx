@@ -276,6 +276,17 @@ export default function NegociacoesPage() {
       };
 
       const pixKey = DEFAULT_PIX_KEY;
+
+      // Criar mensagem PIX com lote, número e corretor (máximo 25 caracteres)
+      let pixTxId = numeroRecibo;
+      if (negociacao.numeroLote || corretor) {
+        const loteInfo = negociacao.numeroLote ? `L${negociacao.numeroLote}` : '';
+        const corretorInfo = corretor ? `${corretor.nome.split(' ')[0]}${corretor.creci ? `-${corretor.creci}` : ''}` : '';
+        const separador = loteInfo && corretorInfo ? '/' : '';
+        const infoAdicional = `${loteInfo}${separador}${corretorInfo}`.slice(0, 10); // Limitar a 10 caracteres
+        pixTxId = `${numeroRecibo}-${infoAdicional}`.slice(0, 25); // Limitar total a 25 caracteres
+      }
+
       const qrOptions = parcela.status !== "Paga"
         ? {
           pixKey,
@@ -284,7 +295,7 @@ export default function NegociacoesPage() {
             amount: parcela.valor,
             merchantName: EMISSOR_NOME,
             merchantCity: "Florianopolis",
-            txId: numeroRecibo.length > 25 ? numeroRecibo.slice(-25) : numeroRecibo.padStart(25, '0')
+            txId: pixTxId.length > 25 ? pixTxId.slice(-25) : pixTxId.padStart(25, '0')
           })
         }
         : undefined;

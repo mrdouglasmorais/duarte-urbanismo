@@ -1,23 +1,45 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { cookies } from 'next/headers';
+import { findUserById } from '@/lib/auth';
 import { UserRole } from '@/models/User';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export async function requireAuth(request: NextRequest) {
-  const session = await getServerSession(authOptions);
+  try {
+    const cookieStore = await cookies();
+    const userId = cookieStore.get('sgci-auth')?.value;
 
-  if (!session || !session.user) {
+    if (!userId) {
+      return {
+        error: NextResponse.json(
+          { error: 'Não autenticado' },
+          { status: 401 }
+        ),
+        session: null,
+      };
+    }
+
+    const user = await findUserById(userId);
+    if (!user || user.status !== 'APPROVED') {
+      return {
+        error: NextResponse.json(
+          { error: 'Não autenticado' },
+          { status: 401 }
+        ),
+        session: null,
+      };
+    }
+
+    return { error: null, session: { user } };
+  } catch (error) {
     return {
       error: NextResponse.json(
-        { error: 'Não autenticado' },
-        { status: 401 }
+        { error: 'Erro ao verificar autenticação' },
+        { status: 500 }
       ),
       session: null,
     };
   }
-
-  return { error: null, session };
 }
 
 export async function requireRole(request: NextRequest, allowedRoles: UserRole[]) {
@@ -27,7 +49,7 @@ export async function requireRole(request: NextRequest, allowedRoles: UserRole[]
     return { error, session: null };
   }
 
-  if (!session || !allowedRoles.includes(session.user.role)) {
+  if (!session || !session.user || !allowedRoles.includes(session.user.role)) {
     return {
       error: NextResponse.json(
         { error: 'Acesso negado. Permissões insuficientes.' },

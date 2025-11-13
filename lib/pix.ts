@@ -68,4 +68,4 @@ export function buildStaticPixPayload({ key, amount, merchantName, merchantCity,
   return `${payloadWithCRC}${crc}`;
 }
 
-export const DEFAULT_PIX_KEY = '356.372.638-84';
+export const DEFAULT_PIX_KEY = '47.200.760/0001-06';
