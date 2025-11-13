@@ -106,6 +106,7 @@ export default function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -132,10 +133,37 @@ export default function LandingPage() {
     return () => clearInterval(timer);
   }, [totalSlides]);
 
-  const handlePrev = () => setCurrentSlide(prev => (prev - 1 + totalSlides) % totalSlides);
-  const handleNext = () => setCurrentSlide(prev => (prev + 1) % totalSlides);
-  const goToSlide = (targetIndex: number) => setCurrentSlide((targetIndex + totalSlides) % totalSlides);
-  const previewThumbnails = Array.from({ length: 5 }, (_, index) => galleryImages[(currentSlide + index) % totalSlides]);
+  const handlePrev = () => {
+    let attempts = 0;
+    let newSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+    while (imageErrors.has(galleryImages[newSlide]) && attempts < totalSlides) {
+      newSlide = (newSlide - 1 + totalSlides) % totalSlides;
+      attempts++;
+    }
+    setCurrentSlide(newSlide);
+  };
+  
+  const handleNext = () => {
+    let attempts = 0;
+    let newSlide = (currentSlide + 1) % totalSlides;
+    while (imageErrors.has(galleryImages[newSlide]) && attempts < totalSlides) {
+      newSlide = (newSlide + 1) % totalSlides;
+      attempts++;
+    }
+    setCurrentSlide(newSlide);
+  };
+  
+  const goToSlide = (targetIndex: number) => {
+    if (!imageErrors.has(galleryImages[targetIndex])) {
+      setCurrentSlide((targetIndex + totalSlides) % totalSlides);
+    }
+  };
+  
+  const validImages = galleryImages.filter(img => !imageErrors.has(img));
+  const previewThumbnails = Array.from({ length: Math.min(5, validImages.length) }, (_, index) => {
+    const validIndex = (currentSlide + index) % validImages.length;
+    return validImages[validIndex];
+  });
 
   const handleScrollTo = (href: string) => {
     setIsMenuOpen(false);
@@ -750,16 +778,31 @@ export default function LandingPage() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1.1, ease: 'easeOut' }}
             >
-              <button className="absolute inset-0" onClick={() => setZoomImage(galleryImages[currentSlide])}>
-                <Image
-                  src={`/${galleryImages[currentSlide]}`}
-                  alt="Galeria Pôr do Sol Eco Village"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 80vw"
-                  className="object-cover"
-                  priority={currentSlide === 0}
-                />
-              </button>
+              {galleryImages[currentSlide] && !imageErrors.has(galleryImages[currentSlide]) ? (
+                <button className="absolute inset-0" onClick={() => setZoomImage(galleryImages[currentSlide])}>
+                  <Image
+                    src={`/${galleryImages[currentSlide]}`}
+                    alt="Galeria Pôr do Sol Eco Village"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 80vw"
+                    className="object-cover"
+                    priority={currentSlide === 0}
+                    onError={() => {
+                      console.error('Erro ao carregar imagem:', galleryImages[currentSlide]);
+                      setImageErrors(prev => new Set(prev).add(galleryImages[currentSlide]));
+                      // Avançar para próxima imagem válida
+                      const nextIndex = (currentSlide + 1) % totalSlides;
+                      if (nextIndex !== currentSlide) {
+                        setTimeout(() => setCurrentSlide(nextIndex), 100);
+                      }
+                    }}
+                  />
+                </button>
+              ) : (
+                <div className="flex h-full items-center justify-center bg-slate-100">
+                  <p className="text-slate-400">Imagem não disponível</p>
+                </div>
+              )}
             </motion.div>
             <div className="mt-6 flex items-center justify-between">
               <button
@@ -794,13 +837,23 @@ export default function LandingPage() {
                     }`}
                     aria-label={`Ir para imagem ${slideIndex + 1}`}
                   >
-                    <Image
-                      src={`/${image}`}
-                      alt="Miniatura Pôr do Sol Eco Village"
-                      width={120}
-                      height={80}
-                      className="object-cover"
-                    />
+                    {!imageErrors.has(image) ? (
+                      <Image
+                        src={`/${image}`}
+                        alt="Miniatura Pôr do Sol Eco Village"
+                        width={120}
+                        height={80}
+                        className="object-cover"
+                        onError={() => {
+                          console.error('Erro ao carregar miniatura:', image);
+                          setImageErrors(prev => new Set(prev).add(image));
+                        }}
+                      />
+                    ) : (
+                      <div className="flex h-20 w-[120px] items-center justify-center bg-slate-100 text-xs text-slate-400">
+                        Erro
+                      </div>
+                    )}
                   </button>
                 );
               })}
