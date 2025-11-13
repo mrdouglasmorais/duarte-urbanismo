@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Manrope, Playfair_Display } from 'next/font/google';
+import { Manrope, Playfair_Display, Ephesis } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
 
@@ -15,6 +15,13 @@ const playfair = Playfair_Display({
   display: 'swap'
 });
 
+const ephesis = Ephesis({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-ephesis',
+  display: 'swap'
+});
+
 export const metadata: Metadata = {
   title: 'S.G.C.I - Sistema de Gestão de Contratos Imobiliários',
   description:
@@ -24,7 +31,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body className={`${manrope.variable} ${playfair.variable} antialiased bg-slate-50 text-slate-900`}>
+      <body className={`${manrope.variable} ${playfair.variable} ${ephesis.variable} antialiased bg-slate-50 text-slate-900`}>
         <Providers>{children}</Providers>
       </body>
     </html>

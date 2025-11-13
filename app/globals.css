@@ -24,6 +24,7 @@
   --color-accent: var(--color-accent);
   --font-sans: var(--font-manrope);
   --font-display: var(--font-playfair);
+  --font-ephesis: var(--font-ephesis);
 }
 
 @media (prefers-color-scheme: dark) {
