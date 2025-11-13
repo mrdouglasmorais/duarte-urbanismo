@@ -50,9 +50,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Gerar token JWT
+    const clienteId = String(cliente._id);
     const token = sign(
       {
-        clienteId: cliente._id.toString(),
+        clienteId,
         cpf: cliente.cpf,
         nome: cliente.nome,
       },
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         cliente: {
-          id: cliente._id.toString(),
+          id: clienteId,
           cpf: cliente.cpf,
           nome: cliente.nome,
           email: cliente.email,

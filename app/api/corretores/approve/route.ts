@@ -10,7 +10,11 @@ const COLLECTION_NAME = 'sgci_corretores';
 export async function POST(request: NextRequest) {
   try {
     // Verificar se o usuário é admin
-    const user = await requireRole(request, ['ADMIN', 'SUPER_ADMIN']);
+    const { error: authError, user } = await requireRole(request, ['ADMIN', 'SUPER_ADMIN']);
+
+    if (authError || !user) {
+      return authError || NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
 
     const body = await request.json();
     const { corretorId, status } = body;

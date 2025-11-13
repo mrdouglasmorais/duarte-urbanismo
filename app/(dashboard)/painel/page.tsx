@@ -68,7 +68,7 @@ export default function HomePage() {
       0
     );
     const negociacoesFechadas = negociacoes.filter((n) => n.status === "Fechado").length;
-    const negociacoesEmAndamento = negociacoes.filter((n) => n.status === "Em Andamento").length;
+    const negociacoesEmAndamento = negociacoes.filter((n) => n.status === "Em andamento").length;
 
     return {
       empreendimentos: empreendimentos.length,
@@ -128,8 +128,8 @@ export default function HomePage() {
   const negociacoesRecentes = useMemo(() => {
     return negociacoes
       .sort((a, b) => {
-        const dataA = new Date(a.dataContrato || a.createdAt || "2024-01-01");
-        const dataB = new Date(b.dataContrato || b.createdAt || "2024-01-01");
+        const dataA = new Date(a.criadoEm || "2024-01-01");
+        const dataB = new Date(b.criadoEm || "2024-01-01");
         return dataB.getTime() - dataA.getTime();
       })
       .slice(0, 5);
@@ -415,7 +415,7 @@ export default function HomePage() {
               <div className="space-y-3">
                 {negociacoesRecentes.map((negociacao) => {
                   const cliente = clientes.find((c) => c.id === negociacao.clienteId);
-                  const empreendimento = empreendimentos.find((e) => e.id === negociacao.empreendimentoId);
+                  const empreendimento = empreendimentos.find((e) => e.id === negociacao.unidadeId);
                   return (
                     <div
                       key={negociacao.id}
@@ -425,8 +425,8 @@ export default function HomePage() {
                         <div className="flex-1">
                           <p className="text-sm font-semibold text-slate-900">{cliente?.nome || "Cliente não encontrado"}</p>
                           <p className="mt-1 text-xs text-slate-600">{empreendimento?.nome || "Empreendimento não encontrado"}</p>
-                          {negociacao.dataContrato && (
-                            <p className="mt-1 text-xs text-slate-500">{formatarData(negociacao.dataContrato)}</p>
+                          {negociacao.criadoEm && (
+                            <p className="mt-1 text-xs text-slate-500">{formatarData(negociacao.criadoEm)}</p>
                           )}
                         </div>
                         <div className="ml-4">
@@ -434,7 +434,7 @@ export default function HomePage() {
                             className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                               negociacao.status === "Fechado"
                                 ? "bg-green-100 text-green-800"
-                                : negociacao.status === "Em Andamento"
+                                : negociacao.status === "Em andamento"
                                   ? "bg-blue-100 text-blue-800"
                                   : "bg-slate-100 text-slate-800"
                             }`}

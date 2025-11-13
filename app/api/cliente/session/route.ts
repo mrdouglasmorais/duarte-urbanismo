@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           cliente: {
-            id: cliente._id.toString(),
+            id: String(cliente._id),
             cpf: cliente.cpf,
             nome: cliente.nome,
             email: cliente.email,

@@ -66,7 +66,6 @@ export default function CorretorLeaderboard() {
       } else if (
         negociacao.status === 'Em andamento' ||
         negociacao.status === 'Em prospecção' ||
-        negociacao.status === 'Em Andamento' ||
         negociacao.status === 'Aguardando aprovação'
       ) {
         stats.negociacoesEmAndamento += 1;

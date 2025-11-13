@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 export interface ToastOptions {
   duration?: number;
   position?: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
-  icon?: React.ReactNode;
+  icon?: string | React.ReactElement;
 }
 
 /**
@@ -18,7 +18,7 @@ export const toastSuccess = (message: string, options?: ToastOptions) => {
   return toast.success(message, {
     duration: options?.duration || 4000,
     position: options?.position || 'top-right',
-    icon: options?.icon,
+    ...(options?.icon && { icon: options.icon }),
     style: {
       background: '#10b981',
       color: '#fff',
@@ -37,7 +37,7 @@ export const toastError = (message: string, options?: ToastOptions) => {
   return toast.error(message, {
     duration: options?.duration || 5000,
     position: options?.position || 'top-right',
-    icon: options?.icon,
+    ...(options?.icon && { icon: options.icon }),
     style: {
       background: '#ef4444',
       color: '#fff',
@@ -56,7 +56,7 @@ export const toastInfo = (message: string, options?: ToastOptions) => {
   return toast(message, {
     duration: options?.duration || 4000,
     position: options?.position || 'top-right',
-    icon: options?.icon,
+    ...(options?.icon && { icon: options.icon }),
     style: {
       background: '#3b82f6',
       color: '#fff',
