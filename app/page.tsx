@@ -159,9 +159,13 @@ export default function LandingPage() {
     }
   };
   
+  // Filtrar apenas imagens válidas que não têm erro
   const validImages = galleryImages.filter(img => !imageErrors.has(img));
+  const currentValidIndex = validImages.indexOf(galleryImages[currentSlide]);
   const previewThumbnails = Array.from({ length: Math.min(5, validImages.length) }, (_, index) => {
-    const validIndex = (currentSlide + index) % validImages.length;
+    const validIndex = currentValidIndex >= 0 
+      ? (currentValidIndex + index) % validImages.length
+      : index % validImages.length;
     return validImages[validIndex];
   });
 
