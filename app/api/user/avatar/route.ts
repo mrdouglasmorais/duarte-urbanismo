@@ -1,21 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
-import { updateUserAvatar } from '@/lib/auth';
-import { uploadAvatar } from '@/lib/cloudinary';
+import { getServerUser } from '@/lib/firebase/server-auth';
+import { updateUserProfile, getUserProfile } from '@/lib/firebase/auth';
+import { uploadUserAvatar } from '@/lib/firebase/storage';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const NEXTAUTH_SECRET = 'DUARTE_URBANISMO_SECRET_KEY_2024_VERCEL_PRODUCTION_SAFE';
-
 export async function POST(request: NextRequest) {
   try {
-    const token = await getToken({
-      req: request,
-      secret: NEXTAUTH_SECRET
-    });
+    const user = await getServerUser(request);
 
-    if (!token || !token.id) {
+    if (!user || !user.uid) {
       return NextResponse.json(
         { error: 'Não autenticado' },
         { status: 401 }
@@ -48,26 +43,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Converter File para Buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // Upload para Firebase Storage
+    const avatarUrl = await uploadUserAvatar(user.uid, file);
 
-    // Upload para Cloudinary
-    const filename = `${token.id}-${Date.now()}`;
-    const uploadResult = await uploadAvatar(buffer, filename);
+    // Atualizar perfil no Firestore
+    await updateUserProfile(user.uid, { avatarUrl });
 
-    // Atualizar avatarUrl no banco
-    const user = await updateUserAvatar(token.id as string, uploadResult.secure_url);
+    // Buscar perfil completo para retornar
+    const profile = await getUserProfile(user.uid);
 
     return NextResponse.json(
       {
         success: true,
-        avatarUrl: uploadResult.secure_url,
+        avatarUrl,
         user: {
-          id: user._id,
+          uid: user.uid,
           email: user.email,
-          name: user.name,
-          avatarUrl: user.avatarUrl,
+          name: profile?.name || user.name || 'Usuário',
+          avatarUrl,
         },
       },
       { status: 200 }

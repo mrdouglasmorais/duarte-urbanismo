@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useFirebaseAuth } from '@/contexts/firebase-auth-context';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -9,22 +9,22 @@ import Link from 'next/link';
 import AvatarUpload from '@/components/AvatarUpload';
 
 export default function CorretorProfilePage() {
-  const { data: session, status } = useSession();
+  const { user, profile, loading } = useFirebaseAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (!loading && !user) {
       router.push('/login');
       return;
     }
 
-    if (status === 'authenticated' && session?.user?.role !== 'CORRETOR') {
+    if (!loading && profile && profile.role !== 'CORRETOR') {
       router.push('/painel');
       return;
     }
-  }, [status, session, router]);
+  }, [loading, user, profile, router]);
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="text-center">
@@ -35,7 +35,7 @@ export default function CorretorProfilePage() {
     );
   }
 
-  if (status === 'unauthenticated' || session?.user?.role !== 'CORRETOR') {
+  if (!user || profile?.role !== 'CORRETOR') {
     return null;
   }
 
@@ -55,7 +55,7 @@ export default function CorretorProfilePage() {
               />
             </Link>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-slate-600">{session?.user?.name}</span>
+              <span className="text-sm text-slate-600">{profile?.name || user?.displayName}</span>
               <Link
                 href="/painel"
                 className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-slate-700 transition hover:bg-slate-50"
@@ -89,7 +89,7 @@ export default function CorretorProfilePage() {
               <h2 className="text-xl font-semibold text-slate-900 mb-6 text-center">
                 Foto de Perfil
               </h2>
-              <AvatarUpload currentAvatarUrl={session?.user?.avatarUrl} />
+              <AvatarUpload currentAvatarUrl={profile?.avatarUrl || user?.photoURL || undefined} />
             </div>
 
             {/* Informações do Usuário */}
@@ -102,33 +102,33 @@ export default function CorretorProfilePage() {
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
                     Nome
                   </label>
-                  <p className="text-lg text-slate-900">{session?.user?.name}</p>
+                  <p className="text-lg text-slate-900">{profile?.name || user?.displayName}</p>
                 </div>
                 <div>
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
                     E-mail
                   </label>
-                  <p className="text-lg text-slate-900">{session?.user?.email}</p>
+                  <p className="text-lg text-slate-900">{profile?.email || user?.email}</p>
                 </div>
                 <div>
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
                     Função
                   </label>
-                  <p className="text-lg text-slate-900">Corretor</p>
+                  <p className="text-lg text-slate-900">{profile?.role === 'CORRETOR' ? 'Corretor' : profile?.role}</p>
                 </div>
                 <div>
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
                     Status
                   </label>
                   <span className={`inline-flex rounded-full px-4 py-1.5 text-sm font-semibold ${
-                    session?.user?.status === 'APPROVED'
+                    profile?.status === 'APPROVED'
                       ? 'bg-emerald-100 text-emerald-700'
-                      : session?.user?.status === 'PENDING'
+                      : profile?.status === 'PENDING'
                       ? 'bg-amber-100 text-amber-700'
                       : 'bg-red-100 text-red-700'
                   }`}>
-                    {session?.user?.status === 'APPROVED' ? 'Aprovado' :
-                     session?.user?.status === 'PENDING' ? 'Pendente' : 'Rejeitado'}
+                    {profile?.status === 'APPROVED' ? 'Aprovado' :
+                     profile?.status === 'PENDING' ? 'Pendente' : 'Rejeitado'}
                   </span>
                 </div>
               </div>

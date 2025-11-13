@@ -979,7 +979,7 @@ export default function LandingPage() {
                     )}
 
                     {/* Foto Redonda - Maior para destaques */}
-                    <div className={`relative mb-4 overflow-hidden rounded-full shadow-lg transition hover:scale-105 hover:shadow-xl ${
+                    <div className={`mb-4 flex items-center justify-center overflow-hidden rounded-full shadow-lg transition hover:scale-105 hover:shadow-xl ${
                       corretor.destaque
                         ? 'h-40 w-40 border-4 border-emerald-500 ring-4 ring-emerald-100'
                         : 'h-32 w-32 border-4 border-emerald-100'
@@ -987,8 +987,9 @@ export default function LandingPage() {
                       <Image
                         src={corretor.foto}
                         alt={`${corretor.nome} - ${corretor.cargo}`}
-                        fill
-                        className="object-cover"
+                        width={corretor.destaque ? 160 : 128}
+                        height={corretor.destaque ? 160 : 128}
+                        className="h-full w-full rounded-full object-cover"
                         sizes="(max-width: 640px) 128px, 160px"
                         priority={corretor.destaque}
                         unoptimized

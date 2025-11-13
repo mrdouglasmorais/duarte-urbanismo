@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateUserStatus, getPendingUsers } from '@/lib/auth';
-import { UserStatus } from '@/models/User';
+import { updateUserProfile, getUserProfile } from '@/lib/firebase/auth';
+import { getPendingUsersFromFirestore } from '@/lib/firebase/firestore-helpers';
+import type { UserStatus } from '@/lib/firebase/auth';
 import { requireSuperAdmin } from '@/lib/middleware-role';
 
 export const dynamic = 'force-dynamic';
@@ -31,17 +32,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await updateUserStatus(userId, status as UserStatus);
+    await updateUserProfile(userId, { status: status as UserStatus });
+    const user = await getUserProfile(userId);
 
     return NextResponse.json(
       {
         success: true,
         message: `Usuário ${status === 'APPROVED' ? 'aprovado' : 'rejeitado'} com sucesso`,
         user: {
-          id: user._id,
-          email: user.email,
-          name: user.name,
-          status: user.status,
+          id: user?.uid,
+          email: user?.email,
+          name: user?.name,
+          status: user?.status,
         },
       },
       { status: 200 }
@@ -71,19 +73,19 @@ export async function GET(request: NextRequest) {
       return authError;
     }
 
-    const users = await getPendingUsers();
+    const users = await getPendingUsersFromFirestore();
 
     return NextResponse.json(
       {
         success: true,
         users: users.map(user => ({
-          id: user._id,
+          id: user.uid,
           email: user.email,
           name: user.name,
           phone: user.phone,
           role: user.role,
           status: user.status,
-          createdAt: user.createdAt,
+          createdAt: user.createdAt?.toISOString() || new Date().toISOString(),
         })),
       },
       { status: 200 }

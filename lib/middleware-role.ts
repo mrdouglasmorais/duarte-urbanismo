@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
-import { UserRole } from '@/models/User';
-
-const NEXTAUTH_SECRET = 'DUARTE_URBANISMO_SECRET_KEY_2024_VERCEL_PRODUCTION_SAFE';
+import { requireRole as requireRoleFirebase } from '@/lib/firebase/server-auth';
+import type { UserRole } from '@/lib/firebase/auth';
 
 /**
  * Middleware helper para proteger rotas por role
@@ -15,27 +13,8 @@ export async function requireRole(
   request: NextRequest,
   allowedRoles: UserRole[]
 ): Promise<NextResponse | null> {
-  const token = await getToken({
-    req: request,
-    secret: NEXTAUTH_SECRET
-  });
-
-  if (!token || !token.id) {
-    return NextResponse.json(
-      { error: 'Não autenticado' },
-      { status: 401 }
-    );
-  }
-
-  const userRole = token.role as UserRole;
-  if (!allowedRoles.includes(userRole)) {
-    return NextResponse.json(
-      { error: 'Acesso negado. Você não tem permissão para acessar este recurso.' },
-      { status: 403 }
-    );
-  }
-
-  return null;
+  const { error } = await requireRoleFirebase(request, allowedRoles);
+  return error;
 }
 
 /**

@@ -2,7 +2,9 @@
 
 import { useState, useRef } from 'react';
 import Image from 'next/image';
-import { useSession } from 'next-auth/react';
+import { useFirebaseAuth } from '@/contexts/firebase-auth-context';
+import { uploadUserAvatar } from '@/lib/firebase/storage';
+import { updateUserProfile } from '@/lib/firebase/auth';
 
 interface AvatarUploadProps {
   currentAvatarUrl?: string;
@@ -10,7 +12,7 @@ interface AvatarUploadProps {
 }
 
 export default function AvatarUpload({ currentAvatarUrl, onUploadComplete }: AvatarUploadProps) {
-  const { data: session, update } = useSession();
+  const { user, profile } = useFirebaseAuth();
   const [preview, setPreview] = useState<string | null>(currentAvatarUrl || null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,32 +46,28 @@ export default function AvatarUpload({ currentAvatarUrl, onUploadComplete }: Ava
   };
 
   const handleUpload = async (file: File) => {
+    if (!user) {
+      setError('Usuário não autenticado');
+      return;
+    }
+
     try {
       setUploading(true);
       setError(null);
 
-      const formData = new FormData();
-      formData.append('file', file);
+      // Upload para Firebase Storage
+      const avatarUrl = await uploadUserAvatar(user.uid, file);
 
-      const response = await fetch('/api/user/avatar', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Erro ao fazer upload');
-      }
-
-      const data = await response.json();
-
-      // Atualizar sessão
-      await update();
+      // Atualizar perfil no Firestore
+      await updateUserProfile(user.uid, { avatarUrl });
 
       // Callback
       if (onUploadComplete) {
-        onUploadComplete(data.avatarUrl);
+        onUploadComplete(avatarUrl);
       }
+
+      // Atualizar preview
+      setPreview(avatarUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao fazer upload');
       setPreview(currentAvatarUrl || null);

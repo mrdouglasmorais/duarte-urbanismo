@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useFirebaseAuth } from '@/contexts/firebase-auth-context';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
@@ -18,7 +18,7 @@ interface PendingUser {
 }
 
 export default function AdminPendentesPage() {
-  const { data: session, status } = useSession();
+  const { user, profile, loading: authLoading } = useFirebaseAuth();
   const router = useRouter();
   const [users, setUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,20 +26,20 @@ export default function AdminPendentesPage() {
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (!authLoading && !user) {
       router.push('/login');
       return;
     }
 
-    if (status === 'authenticated' && session?.user?.role !== 'SUPER_ADMIN') {
+    if (!authLoading && profile && profile.role !== 'SUPER_ADMIN') {
       router.push('/painel');
       return;
     }
 
-    if (status === 'authenticated') {
+    if (!authLoading && user) {
       loadPendingUsers();
     }
-  }, [status, session, router]);
+  }, [authLoading, user, profile, router]);
 
   const loadPendingUsers = async () => {
     try {
@@ -82,7 +82,7 @@ export default function AdminPendentesPage() {
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="text-center">
@@ -93,7 +93,7 @@ export default function AdminPendentesPage() {
     );
   }
 
-  if (status === 'unauthenticated' || session?.user?.role !== 'SUPER_ADMIN') {
+  if (!user || profile?.role !== 'SUPER_ADMIN') {
     return null;
   }
 
@@ -113,7 +113,7 @@ export default function AdminPendentesPage() {
               />
             </Link>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-slate-600">{session?.user?.name}</span>
+              <span className="text-sm text-slate-600">{profile?.name || user?.displayName}</span>
               <Link
                 href="/painel"
                 className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-slate-700 transition hover:bg-slate-50"

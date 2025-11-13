@@ -1,10 +1,20 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { verifyFirebaseToken } from '@/lib/firebase/server-auth';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = await getToken({ req: request, secret: 'DUARTE_URBANISMO_SECRET_KEY_2024_VERCEL_PRODUCTION_SAFE' });
+
+  // Obter token do cookie
+  const token = request.cookies.get('firebase-auth-token')?.value;
+  let user = null;
+
+  if (token) {
+    const decodedToken = await verifyFirebaseToken(token);
+    if (decodedToken) {
+      user = decodedToken;
+    }
+  }
 
   // Rotas públicas
   const publicRoutes = ['/', '/login', '/cadastro-corretor', '/recibos'];
@@ -14,7 +24,7 @@ export async function middleware(request: NextRequest) {
   const isPrivateRoute = pathname.startsWith('/painel') || pathname.startsWith('/admin') || pathname.startsWith('/corretor');
 
   // Se é rota privada e não está autenticado
-  if (isPrivateRoute && !token) {
+  if (isPrivateRoute && !user) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('redirectTo', pathname);
@@ -22,29 +32,14 @@ export async function middleware(request: NextRequest) {
   }
 
   // Se está autenticado e tenta acessar login, redirecionar para painel
-  if (token && pathname === '/login') {
+  if (user && pathname === '/login') {
     const url = request.nextUrl.clone();
     url.pathname = '/painel';
     return NextResponse.redirect(url);
   }
 
-  // Proteção de rotas admin (apenas SUPER_ADMIN)
-  if (pathname.startsWith('/admin') && token) {
-    if (token.role !== 'SUPER_ADMIN') {
-      const url = request.nextUrl.clone();
-      url.pathname = '/painel';
-      return NextResponse.redirect(url);
-    }
-  }
-
-  // Proteção de rotas corretor (apenas CORRETOR)
-  if (pathname.startsWith('/corretor') && token) {
-    if (token.role !== 'CORRETOR') {
-      const url = request.nextUrl.clone();
-      url.pathname = '/painel';
-      return NextResponse.redirect(url);
-    }
-  }
+  // Nota: Verificação de roles será feita nas páginas/API routes usando requireRole
+  // O middleware apenas verifica autenticação básica
 
   return NextResponse.next();
 }

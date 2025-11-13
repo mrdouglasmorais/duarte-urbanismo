@@ -1,8 +1,9 @@
 import { getDb } from '@/lib/mongodb';
 import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import { uploadCorretorPhoto } from '@/lib/firebase/storage';
+import { getServerUser } from '@/lib/firebase/server-auth';
+import type { UserRole, UserStatus } from '@/lib/firebase/auth';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -11,9 +12,41 @@ const COLLECTION_NAME = 'sgci_corretores';
 
 export async function POST(request: NextRequest) {
   try {
+    // Verificar autenticação (usuário deve estar logado após criar conta)
+    // Se não estiver autenticado via cookie, tentar via header Authorization
+    let user = await getServerUser(request);
+
+    if (!user || !user.uid) {
+      // Tentar obter token do header Authorization
+      const authHeader = request.headers.get('authorization');
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        const { verifyFirebaseToken } = await import('@/lib/firebase/server-auth');
+        const decodedToken = await verifyFirebaseToken(token);
+        if (decodedToken) {
+          // Buscar perfil completo usando getServerUser com token no cookie temporariamente
+          // Ou criar objeto mínimo compatível
+          user = {
+            uid: decodedToken.uid,
+            email: decodedToken.email || '',
+            name: '',
+            role: 'CORRETOR' as UserRole,
+            status: 'PENDING' as UserStatus,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+        }
+      }
+    }
+
+    if (!user || !user.uid) {
+      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+    }
+
     const formData = await request.formData();
 
     // Extrair dados do formulário
+    const userId = formData.get('userId')?.toString().trim() || user.uid;
     const nome = formData.get('nome')?.toString().trim();
     const creci = formData.get('creci')?.toString().trim();
     const email = formData.get('email')?.toString().trim().toLowerCase();
@@ -68,11 +101,8 @@ export async function POST(request: NextRequest) {
     let fotoUrl: string | undefined;
     if (fotoFile && fotoFile.size > 0) {
       try {
-        const bytes = await fotoFile.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-
         // Validar tamanho (máximo 5MB)
-        if (buffer.length > 5 * 1024 * 1024) {
+        if (fotoFile.size > 5 * 1024 * 1024) {
           return NextResponse.json({ error: 'Foto muito grande. Máximo 5MB' }, { status: 400 });
         }
 
@@ -82,31 +112,10 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'Formato de imagem inválido. Use JPG, PNG ou WEBP' }, { status: 400 });
         }
 
-        // Salvar foto no diretório public/corretores
-        const fotoId = randomUUID();
-        const extension = fotoFile.name.split('.').pop() || 'jpg';
-        const filename = `corretor-${fotoId}.${extension}`;
-        const publicDir = join(process.cwd(), 'public', 'corretores');
-
-        // Criar diretório se não existir
-        const { mkdir } = await import('fs/promises');
-        try {
-          await mkdir(publicDir, { recursive: true });
-        } catch (error) {
-          // Diretório já existe ou erro ao criar, continuar mesmo assim
-          console.warn('Aviso ao criar diretório de fotos:', error);
-        }
-
-        try {
-          const filepath = join(publicDir, filename);
-          await writeFile(filepath, buffer);
-          fotoUrl = `/corretores/${filename}`;
-        } catch (fileError) {
-          console.error('Erro ao salvar arquivo de foto:', fileError);
-          // Continuar sem foto se houver erro ao salvar
-        }
+        // Upload para Firebase Storage
+        fotoUrl = await uploadCorretorPhoto(userId, fotoFile);
       } catch (error) {
-        console.error('Erro ao salvar foto:', error);
+        console.error('Erro ao fazer upload da foto:', error);
         return NextResponse.json({ error: 'Erro ao processar foto' }, { status: 500 });
       }
     }
@@ -114,6 +123,7 @@ export async function POST(request: NextRequest) {
     // Criar documento do corretor
     const corretorData = {
       id: `cor-${randomUUID()}`,
+      userId, // ID do Firebase Auth
       nome,
       creci: creci.toUpperCase(),
       email,

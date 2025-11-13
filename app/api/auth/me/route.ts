@@ -1,26 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { findUserById } from '@/lib/users/repository';
-import { cookies } from 'next/headers';
+import { getServerUser } from '@/lib/firebase/server-auth';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const userId = cookieStore.get('sgci-auth')?.value;
+    const user = await getServerUser(request);
 
-    if (!userId) {
+    if (!user) {
       return NextResponse.json({ user: null });
     }
 
-    const user = await findUserById(userId);
-    if (!user || !user.ativo) {
-      return NextResponse.json({ user: null });
-    }
-
-    const { password: _ignoredPassword, ...userWithoutPassword } = user;
-    return NextResponse.json({ user: userWithoutPassword });
+    return NextResponse.json({ user });
   } catch (error) {
     console.error('Erro ao buscar usuário atual:', error);
     return NextResponse.json({ user: null });

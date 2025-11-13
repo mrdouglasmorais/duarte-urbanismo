@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useRef, ChangeEvent } from 'react';
+import { useFirebaseAuth } from '@/contexts/firebase-auth-context';
 
 interface FormData {
   nome: string;
@@ -38,6 +39,7 @@ const fadeInUp = {
 };
 
 export default function CadastroCorretorPage() {
+  const { signUpEmail } = useFirebaseAuth();
   const [formData, setFormData] = useState<FormData>({
     nome: '',
     creci: '',
@@ -138,27 +140,25 @@ export default function CadastroCorretorPage() {
     }
 
     try {
-      // Primeiro, criar usuário no sistema de autenticação
-      const registerResponse = await fetch('/api/auth/register', {
+      // Primeiro, criar usuário no Firebase Authentication
+      const userCredential = await signUpEmail(
+        formData.email,
+        formData.senha,
+        formData.nome,
+        formData.telefone
+      );
+
+      // Obter token para autenticação e salvar no cookie
+      const token = await userCredential.user.getIdToken();
+      await fetch('/api/auth/set-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.senha,
-          name: formData.nome,
-          phone: formData.telefone
-        })
+        body: JSON.stringify({ token }),
       });
-
-      const registerResult = await registerResponse.json();
-
-      if (!registerResponse.ok) {
-        throw new Error(registerResult.error || 'Erro ao criar conta de usuário');
-      }
 
       // Depois, salvar dados adicionais do corretor
       const formDataToSend = new FormData();
-      formDataToSend.append('userId', registerResult.user.id);
+      formDataToSend.append('userId', userCredential.user.uid);
       formDataToSend.append('nome', formData.nome);
       formDataToSend.append('creci', formData.creci);
       formDataToSend.append('email', formData.email);
@@ -183,6 +183,9 @@ export default function CadastroCorretorPage() {
 
       const corretorResponse = await fetch('/api/corretores/cadastro', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formDataToSend
       });
 

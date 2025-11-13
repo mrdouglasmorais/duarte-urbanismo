@@ -1,7 +1,7 @@
 'use client';
 
 import { PageTransition } from '@/components/PageTransition';
-import { useAuth } from '@/contexts/auth-context';
+import { useFirebaseAuth } from '@/contexts/firebase-auth-context';
 import { EMPRESA_TELEFONE } from '@/lib/constants';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -39,16 +39,22 @@ const navLinks = [
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useFirebaseAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const saudacao = getSaudacao();
-  const primeiroNome = user?.nome?.split(' ')[0] ?? 'Gestor';
+  const primeiroNome = (profile?.name || user?.displayName)?.split(' ')[0] ?? 'Gestor';
   const mensagemSaudacao = `${saudacao}${user ? `, ${primeiroNome}!` : '!'}`;
 
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
       await logout();
+      // Limpar cookie de token
+      await fetch('/api/auth/set-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: '' }),
+      });
       router.replace('/login');
     } finally {
       setIsLoggingOut(false);
@@ -66,8 +72,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <div className="text-right">
               <p className="text-sm font-semibold text-slate-900">{mensagemSaudacao}</p>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">{user?.nome ?? 'Acesso corporativo'}</p>
-              <p className="text-xs text-slate-500">{user?.email ?? 'Informe suas credenciais corporativas'}</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">{profile?.name || user?.displayName || 'Acesso corporativo'}</p>
+              <p className="text-xs text-slate-500">{profile?.email || user?.email || 'Informe suas credenciais corporativas'}</p>
             </div>
             <button
               onClick={handleLogout}

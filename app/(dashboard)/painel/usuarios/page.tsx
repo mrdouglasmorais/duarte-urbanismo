@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/auth-context';
+import { useFirebaseAuth } from '@/contexts/firebase-auth-context';
 import { validarEmail } from '@/lib/validators';
 
 interface User {
@@ -21,7 +21,7 @@ const initialForm = {
 };
 
 export default function UsuariosPage() {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, profile } = useFirebaseAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [form, setForm] = useState({ ...initialForm });
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -109,7 +109,7 @@ export default function UsuariosPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Tem certeza que deseja remover este usuário?')) return;
-    if (id === currentUser?.id) {
+    if (id === currentUser?.uid || id === profile?.uid) {
       alert('Você não pode remover seu próprio usuário');
       return;
     }
@@ -269,7 +269,7 @@ export default function UsuariosPage() {
                       >
                         Editar
                       </button>
-                      {user.id !== currentUser?.id && (
+                      {user.id !== currentUser?.uid && user.id !== profile?.uid && (
                         <button
                           onClick={() => handleDelete(user.id)}
                           className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-red-700 transition hover:bg-red-50"

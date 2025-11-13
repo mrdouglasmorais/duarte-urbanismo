@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/contexts/auth-context";
+import { useFirebaseAuth } from "@/contexts/firebase-auth-context";
 import { useSgci } from "@/contexts/sgci-context";
 import { BANCO_AGENCIA, BANCO_CONTA, BANCO_NOME, BANCO_TIPO_CONTA, EMISSOR_CNPJ, EMISSOR_NOME, EMPRESA_CEP, EMPRESA_EMAIL, EMPRESA_ENDERECO, EMPRESA_TELEFONE } from "@/lib/constants";
 import { buildStaticPixPayload, DEFAULT_PIX_KEY } from "@/lib/pix";
@@ -79,7 +79,7 @@ export default function NegociacoesPage() {
     atualizarStatusParcela,
     registrarReciboParcela
   } = useSgci();
-  const { user } = useAuth();
+  const { user, profile } = useFirebaseAuth();
 
   const [form, setForm] = useState<NegociacaoFormState>({ ...initialForm });
   const [mensagem, setMensagem] = useState<string | null>(null);
@@ -243,7 +243,7 @@ export default function NegociacoesPage() {
         dataEmissao: new Date().toISOString().split('T')[0], // Data de emissão do recibo
         formaPagamento: `Parcelamento direto · Parcela ${parcelaIndex + 1}/${totalParcelasPlanejado}`,
         emitidoPor: EMISSOR_NOME,
-        emitidoPorNome: user?.nome, // Nome do usuário que emitiu
+        emitidoPorNome: profile?.name || user?.displayName || 'Usuário', // Nome do usuário que emitiu
         cpfEmitente: EMISSOR_CNPJ,
         cepEmitente: EMPRESA_CEP,
         enderecoEmitente: EMPRESA_ENDERECO,
@@ -601,10 +601,11 @@ export default function NegociacoesPage() {
   }, []);
 
   const primeiroNome = useMemo(() => {
-    if (!user?.nome) return "Convidado";
-    const [primeiro] = user.nome.trim().split(" ");
-    return primeiro || user.nome;
-  }, [user?.nome]);
+    if (!profile?.name && !user?.displayName) return "Convidado";
+    const nome = profile?.name || user?.displayName || '';
+    const [primeiro] = nome.trim().split(" ");
+    return primeiro || nome;
+  }, [profile?.name, user?.displayName]);
 
   const valorContratoPreview = currencyStringToNumber(form.valorContrato);
   const permutaFormTotal = form.permutaAtiva
