@@ -105,6 +105,7 @@ const menuItems = [
   { label: 'Chácaras', href: '#chacaras' },
   { label: 'Lazer', href: '#lazer' },
   { label: 'Localização', href: '#localizacao' },
+  { label: 'Vídeos', href: '#videos' },
   { label: 'Galeria', href: '#galeria' },
   { label: 'Contato', href: '#contato' }
 ];
@@ -211,8 +212,8 @@ export default function LandingPage() {
   return (
     <>
       <SEO />
-      <div className="min-h-screen bg-white text-slate-900">
-        {/* Navegação Sticky */}
+    <div className="min-h-screen bg-white text-slate-900">
+      {/* Navegação Sticky */}
       <motion.nav
         className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/60 shadow-sm"
         initial={{ y: -100 }}
@@ -797,6 +798,103 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Seção: Vídeos Aéreos */}
+      <section id="videos" className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-emerald-50/30 to-amber-50/30 py-24">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-200/20 via-transparent to-transparent" />
+
+        <div className="relative z-10 mx-auto max-w-7xl px-4">
+          <motion.div
+            className="mb-12 text-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <p className="text-sm uppercase tracking-[0.5em] text-emerald-600">Vista Aérea</p>
+            <h2 className="mt-2 text-4xl font-bold text-slate-900 md:text-5xl" style={{ fontFamily: 'var(--font-playfair), serif' }}>
+              CONHEÇA O EMPREENDIMENTO
+              <br />
+              <span className="bg-linear-to-r from-emerald-600 to-amber-600 bg-clip-text text-transparent">
+                DO ALTO
+              </span>
+            </h2>
+            <p className="mt-4 text-lg text-slate-600">
+              Veja o Pôr do Sol Eco Village em imagens aéreas exclusivas
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            {/* Vídeo 1 */}
+            <motion.div
+              className="group"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+            >
+              <div className="relative overflow-hidden rounded-[40px] shadow-2xl transition-transform hover:scale-[1.02] bg-slate-900">
+                <video
+                  className="w-full h-auto"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  controls
+                  controlsList="nodownload"
+                  preload="auto"
+                  poster="/modern-luxury-house-with-swimming-pool-at-sunset-2025-02-10-06-40-44-utc.jpg"
+                  style={{ aspectRatio: '16/9', display: 'block' }}
+                  aria-label="Vídeo aéreo do empreendimento Pôr do Sol Eco Village - Vista 01"
+                >
+                  <source src="/videos/drone01.MP4" type="video/mp4" />
+                  <source src="/videos/drone01.MP4" type="video/MP4" />
+                  Seu navegador não suporta o elemento de vídeo.
+                  <a href="/videos/drone01.MP4" download>Baixe o vídeo aqui</a>
+                </video>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
+              </div>
+              <h3 className="mt-4 text-center text-xl font-semibold text-slate-900">
+                Vista Aérea 01
+              </h3>
+            </motion.div>
+
+            {/* Vídeo 2 */}
+            <motion.div
+              className="group"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <div className="relative overflow-hidden rounded-[40px] shadow-2xl transition-transform hover:scale-[1.02] bg-slate-900">
+                <video
+                  className="w-full h-auto"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  controls
+                  controlsList="nodownload"
+                  preload="auto"
+                  poster="/modern-luxury-house-with-swimming-pool-at-sunset-2025-02-10-06-40-44-utc.jpg"
+                  style={{ aspectRatio: '16/9', display: 'block' }}
+                  aria-label="Vídeo aéreo do empreendimento Pôr do Sol Eco Village - Vista 02"
+                >
+                  <source src="/videos/drone02.MP4" type="video/mp4" />
+                  <source src="/videos/drone02.MP4" type="video/MP4" />
+                  Seu navegador não suporta o elemento de vídeo.
+                  <a href="/videos/drone02.MP4" download>Baixe o vídeo aqui</a>
+                </video>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
+              </div>
+              <h3 className="mt-4 text-center text-xl font-semibold text-slate-900">
+                Vista Aérea 02
+              </h3>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Seção: Um Convite a Viver com Propósito */}
       <section className="relative min-h-[600px] overflow-hidden bg-gradient-to-br from-emerald-950 via-green-900 to-amber-950">
         {/* Efeito de luz dramático */}
@@ -1014,9 +1112,9 @@ export default function LandingPage() {
                     {corretor.creci && (
                       <p className="mt-1 text-sm font-semibold text-emerald-600">CRECI: {corretor.creci}</p>
                     )}
-                    {corretor.areaAtuacao && (
-                      <p className="mt-2 text-sm text-slate-600">{corretor.areaAtuacao}</p>
-                    )}
+                        {corretor.areaAtuacao && (
+                          <p className="mt-2 text-sm text-slate-600">{corretor.areaAtuacao}</p>
+                        )}
 
                     {/* Botão WhatsApp */}
                     <div className="mt-4">
@@ -1028,10 +1126,10 @@ export default function LandingPage() {
                       >
                         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-                        </svg>
+                            </svg>
                         Falar no WhatsApp
-                      </a>
-                    </div>
+                          </a>
+                        </div>
                   </motion.div>
                 ))}
               </div>
@@ -1297,26 +1395,26 @@ export default function LandingPage() {
                   </svg>
                   Área do Cliente
                 </Link>
-                <Link
-                  href="/login"
+              <Link
+                href="/login"
                   className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/10 hover:border-emerald-400/50 md:justify-start"
-                >
+              >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  Acessar Painel
-                </Link>
-                <Link
-                  href="/cadastro-corretor"
+                Acessar Painel
+              </Link>
+              <Link
+                href="/cadastro-corretor"
                   className="inline-flex items-center justify-center gap-2 text-sm text-white/80 transition hover:text-emerald-300 md:justify-start"
-                >
+              >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  Cadastro de Corretor
-                </Link>
-              </div>
+                Cadastro de Corretor
+              </Link>
+            </div>
             </div>
           </div>
 
@@ -1353,7 +1451,7 @@ export default function LandingPage() {
         </span>
         WhatsApp
       </a>
-      </div>
+    </div>
     </>
   );
 }
