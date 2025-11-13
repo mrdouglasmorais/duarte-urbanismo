@@ -14,25 +14,25 @@ export function drawLogoPDF(pdf: jsPDF, centerX: number, startY: number) {
         }
         const logoBase64 = `data:image/png;base64,${logoData.toString('base64')}`;
 
-        // Dimensões do logo (ajustar conforme necessário)
-        const logoWidth = 60;
-        const logoHeight = 20;
+        // Dimensões do logo (muito reduzido para layout compacto)
+        const logoWidth = 30;
+        const logoHeight = 10;
         const logoX = centerX - logoWidth / 2;
 
         pdf.addImage(logoBase64, 'PNG', logoX, startY, logoWidth, logoHeight);
 
-        // Texto abaixo do logo
-        let yPos = startY + logoHeight + 8;
-        pdf.setFontSize(9);
+        // Texto abaixo do logo (muito compacto)
+        let yPos = startY + logoHeight + 2.5;
+        pdf.setFontSize(6);
         pdf.setFont('helvetica', 'bold');
         pdf.text('DUARTE URBANISMO LTDA', centerX, yPos, { align: 'center' });
 
-        yPos += 5;
-        pdf.setFontSize(8);
+        yPos += 2.5;
+        pdf.setFontSize(5.5);
         pdf.setFont('helvetica', 'normal');
         pdf.text('CNPJ: 47.200.760/0001-06', centerX, yPos, { align: 'center' });
 
-        return yPos + 5;
+        return yPos + 2;
       } catch (fileError) {
         console.warn('Erro ao processar logo PNG:', fileError);
         throw fileError;

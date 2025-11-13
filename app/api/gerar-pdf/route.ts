@@ -119,110 +119,121 @@ export async function POST(request: NextRequest) {
     const margin = 20;
     const contentWidth = pageWidth - (margin * 2);
 
-    // Desenhar logo
+    // Layout otimizado para uma única página - sem quebra de página automática
+
+    // Desenhar logo (muito compacto)
     let yPos: number;
     try {
-      yPos = drawLogoPDF(pdf, pageWidth / 2, 15);
+      yPos = drawLogoPDF(pdf, pageWidth / 2, 8);
       if (typeof yPos !== 'number' || isNaN(yPos)) {
-        yPos = 30; // Fallback se drawLogoPDF retornar valor inválido
+        yPos = 18; // Fallback se drawLogoPDF retornar valor inválido
       }
     } catch (logoError) {
       console.error('Erro ao desenhar logo:', logoError);
-      yPos = 30; // Posição padrão se o logo falhar
+      yPos = 18; // Posição padrão se o logo falhar
     }
 
-    // Título RECIBO
-    yPos += 10;
-    pdf.setFontSize(28);
+    // Título RECIBO (reduzido)
+    yPos += 2;
+    pdf.setFontSize(14);
     pdf.setTextColor(0, 0, 0);
     pdf.setFont('helvetica', 'bold');
     pdf.text('RECIBO', pageWidth / 2, yPos, { align: 'center' });
 
-    // Número, Status e Datas
-    yPos += 5;
-    pdf.setFontSize(10);
+    // Número, Status e Datas (compacto)
+    yPos += 4;
+    pdf.setFontSize(8);
     pdf.setTextColor(100, 100, 100);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(`Nº ${data.numero}`, pageWidth - margin, yPos - 5, { align: 'right' });
+    let headerInfoY = yPos - 4;
+    pdf.text(`Nº ${data.numero}`, pageWidth - margin, headerInfoY, { align: 'right' });
 
     if (data.status) {
+      headerInfoY += 3.5;
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(data.status === 'Paga' ? 34 : 217, data.status === 'Paga' ? 197 : 119, data.status === 'Paga' ? 94 : 70);
-      pdf.text(`Status: ${data.status === 'Paga' ? 'PAGA' : 'PENDENTE'}`, pageWidth - margin, yPos, { align: 'right' });
+      pdf.text(`Status: ${data.status === 'Paga' ? 'PAGA' : 'PENDENTE'}`, pageWidth - margin, headerInfoY, { align: 'right' });
       pdf.setTextColor(100, 100, 100);
       pdf.setFont('helvetica', 'normal');
-      yPos += 5;
     }
 
     if (data.dataEmissao) {
-      pdf.text(`Data de Emissão: ${formatarData(data.dataEmissao)}`, pageWidth - margin, yPos, { align: 'right' });
-      yPos += 5;
+      headerInfoY += 3.5;
+      pdf.text(`Data de Emissão: ${formatarData(data.dataEmissao)}`, pageWidth - margin, headerInfoY, { align: 'right' });
     }
-    pdf.text(`Data de Pagamento/Vencimento: ${formatarData(data.data)}`, pageWidth - margin, yPos, { align: 'right' });
+    headerInfoY += 3.5;
+    pdf.text(`Data de Pagamento/Vencimento: ${formatarData(data.data)}`, pageWidth - margin, headerInfoY, { align: 'right' });
 
     // Linha separadora
-    yPos += 5;
-    pdf.setDrawColor(150, 150, 150);
-    pdf.setLineWidth(0.5);
+    yPos += 4;
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.3);
     pdf.line(margin, yPos, pageWidth - margin, yPos);
 
-    // Box do Valor
-    yPos += 10;
-    pdf.setFillColor(239, 246, 255); // blue-50
-    pdf.setDrawColor(191, 219, 254); // blue-200
-    pdf.roundedRect(margin, yPos, contentWidth, 30, 3, 3, 'FD');
+    // Box do Valor (muito reduzido e sutil)
+    yPos += 4;
+    pdf.setFillColor(249, 250, 251); // gray-50 mais sutil
+    pdf.setDrawColor(229, 231, 235); // gray-200 mais sutil
+    pdf.roundedRect(margin, yPos, contentWidth, 12, 1.5, 1.5, 'FD');
 
-    pdf.setFontSize(10);
-    pdf.setTextColor(100, 100, 100);
-    pdf.text('Valor', pageWidth / 2, yPos + 8, { align: 'center' });
+    pdf.setFontSize(7);
+    pdf.setTextColor(120, 120, 120);
+    pdf.text('Valor', pageWidth / 2, yPos + 4, { align: 'center' });
 
-    pdf.setFontSize(24);
+    pdf.setFontSize(14);
     pdf.setTextColor(37, 99, 235);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(formatarMoeda(data.valor), pageWidth / 2, yPos + 18, { align: 'center' });
+    pdf.text(formatarMoeda(data.valor), pageWidth / 2, yPos + 9, { align: 'center' });
 
-    pdf.setFontSize(8);
-    pdf.setTextColor(100, 100, 100);
+    pdf.setFontSize(6);
+    pdf.setTextColor(120, 120, 120);
     pdf.setFont('helvetica', 'italic');
-    pdf.text(`(${data.valorExtenso})`, pageWidth / 2, yPos + 25, { align: 'center' });
+    pdf.text(`(${data.valorExtenso})`, pageWidth / 2, yPos + 11.5, { align: 'center' });
 
     // Recebido de
-    yPos += 40;
-    pdf.setFontSize(10);
+    yPos += 4;
+    pdf.setFontSize(8.5);
     pdf.setTextColor(60, 60, 60);
     pdf.setFont('helvetica', 'bold');
     pdf.text('RECEBIDO DE', margin, yPos);
 
-    pdf.setDrawColor(200, 200, 200);
-    pdf.setLineWidth(0.3);
-    pdf.line(margin, yPos + 1, pageWidth - margin, yPos + 1);
+    pdf.setDrawColor(220, 220, 220);
+    pdf.setLineWidth(0.2);
+    pdf.line(margin, yPos + 0.5, pageWidth - margin, yPos + 0.5);
 
-    yPos += 8;
-    pdf.setFontSize(9);
+    yPos += 4;
+    pdf.setFontSize(7.5);
     pdf.setTextColor(120, 120, 120);
     pdf.setFont('helvetica', 'normal');
     pdf.text('Nome/Razão Social', margin, yPos);
     pdf.text('CPF/CNPJ', margin + contentWidth / 2, yPos);
 
-    yPos += 5;
+    yPos += 3.5;
     pdf.setTextColor(40, 40, 40);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(data.recebidoDe, margin, yPos);
-    pdf.text(formatarCPFCNPJ(data.cpfCnpj), margin + contentWidth / 2, yPos);
+    pdf.setFontSize(8.5);
+    const recebidoDeLines = pdf.splitTextToSize(data.recebidoDe, contentWidth / 2 - 5);
+    const cpfCnpjLines = pdf.splitTextToSize(formatarCPFCNPJ(data.cpfCnpj), contentWidth / 2 - 5);
+    const maxLines = Math.max(recebidoDeLines.length, cpfCnpjLines.length);
+
+    pdf.text(recebidoDeLines, margin, yPos);
+    pdf.text(cpfCnpjLines, margin + contentWidth / 2, yPos);
+    yPos += (maxLines * 3.5);
 
     // Informações do Empreendimento e Lote
     if (data.empreendimentoNome || data.empreendimentoUnidade || data.empreendimentoMetragem || data.numeroLote) {
-      yPos += 15;
-      pdf.setFontSize(10);
+      yPos += 4;
+      pdf.setFontSize(8.5);
       pdf.setTextColor(60, 60, 60);
       pdf.setFont('helvetica', 'bold');
       pdf.text('EMPREENDIMENTO', margin, yPos);
 
-      pdf.setDrawColor(200, 200, 200);
-      pdf.line(margin, yPos + 1, pageWidth - margin, yPos + 1);
+      pdf.setDrawColor(220, 220, 220);
+      pdf.setLineWidth(0.2);
+      pdf.line(margin, yPos + 0.5, pageWidth - margin, yPos + 0.5);
 
-      yPos += 8;
-      pdf.setFontSize(9);
+      yPos += 4;
+      pdf.setFontSize(7.5);
       pdf.setTextColor(40, 40, 40);
       pdf.setFont('helvetica', 'normal');
       const empreendimentoInfo: string[] = [];
@@ -231,62 +242,72 @@ export async function POST(request: NextRequest) {
       if (data.empreendimentoUnidade) empreendimentoInfo.push(`Unidade: ${data.empreendimentoUnidade}`);
       if (data.empreendimentoMetragem) empreendimentoInfo.push(`Metragem: ${data.empreendimentoMetragem} m²`);
       if (data.empreendimentoFase) empreendimentoInfo.push(`Fase: ${data.empreendimentoFase}`);
-      pdf.text(empreendimentoInfo.join(' | '), margin, yPos);
+      const empreendimentoText = empreendimentoInfo.join(' | ');
+      const empreendimentoLines = pdf.splitTextToSize(empreendimentoText, contentWidth);
+      pdf.text(empreendimentoLines, margin, yPos);
+      yPos += (empreendimentoLines.length * 3.5);
     }
 
     // Informações da Parcela
     if (data.numeroParcela || data.totalParcelas) {
-      yPos += 12;
-      pdf.setFontSize(10);
+      yPos += 4;
+      pdf.setFontSize(8.5);
       pdf.setTextColor(60, 60, 60);
       pdf.setFont('helvetica', 'bold');
       pdf.text('PARCELA', margin, yPos);
 
-      pdf.setDrawColor(200, 200, 200);
-      pdf.line(margin, yPos + 1, pageWidth - margin, yPos + 1);
+      pdf.setDrawColor(220, 220, 220);
+      pdf.setLineWidth(0.2);
+      pdf.line(margin, yPos + 0.5, pageWidth - margin, yPos + 0.5);
 
-      yPos += 8;
-      pdf.setFontSize(10);
+      yPos += 4;
+      pdf.setFontSize(8.5);
       pdf.setTextColor(40, 40, 40);
       pdf.setFont('helvetica', 'bold');
       const parcelaText = `Parcela ${data.numeroParcela}${data.totalParcelas ? ` de ${data.totalParcelas}` : ''}`;
       pdf.text(parcelaText, margin, yPos);
+      yPos += 4;
     }
 
     // Corretor
     if (data.corretorNome || data.corretorCreci) {
-      yPos += 12;
-      pdf.setFontSize(10);
+      yPos += 4;
+      pdf.setFontSize(8.5);
       pdf.setTextColor(60, 60, 60);
       pdf.setFont('helvetica', 'bold');
       pdf.text('CORRETOR RESPONSÁVEL', margin, yPos);
 
-      pdf.setDrawColor(200, 200, 200);
-      pdf.line(margin, yPos + 1, pageWidth - margin, yPos + 1);
+      pdf.setDrawColor(220, 220, 220);
+      pdf.setLineWidth(0.2);
+      pdf.line(margin, yPos + 0.5, pageWidth - margin, yPos + 0.5);
 
-      yPos += 8;
-      pdf.setFontSize(9);
+      yPos += 4;
+      pdf.setFontSize(7.5);
       pdf.setTextColor(40, 40, 40);
       pdf.setFont('helvetica', 'normal');
       const corretorInfo: string[] = [];
       if (data.corretorNome) corretorInfo.push(`Nome: ${data.corretorNome}`);
       if (data.corretorCreci) corretorInfo.push(`CRECI: ${data.corretorCreci}`);
-      pdf.text(corretorInfo.join(' | '), margin, yPos);
+      const corretorText = corretorInfo.join(' | ');
+      const corretorLines = pdf.splitTextToSize(corretorText, contentWidth);
+      pdf.text(corretorLines, margin, yPos);
+      yPos += (corretorLines.length * 3.5);
     }
 
     // Status e Informações Bancárias
     if (data.status) {
-      yPos += 12;
-      pdf.setFontSize(10);
+      yPos += 4;
+      pdf.setFontSize(8.5);
       pdf.setTextColor(60, 60, 60);
       pdf.setFont('helvetica', 'bold');
       pdf.text('STATUS DO RECIBO', margin, yPos);
 
-      pdf.setDrawColor(200, 200, 200);
-      pdf.line(margin, yPos + 1, pageWidth - margin, yPos + 1);
+      pdf.setDrawColor(220, 220, 220);
+      pdf.setLineWidth(0.2);
+      pdf.line(margin, yPos + 0.5, pageWidth - margin, yPos + 0.5);
 
-      yPos += 8;
-      pdf.setFontSize(11);
+      yPos += 4;
+      pdf.setFontSize(9);
       pdf.setFont('helvetica', 'bold');
       if (data.status === 'Paga') {
         pdf.setTextColor(34, 197, 94); // emerald-600
@@ -297,27 +318,27 @@ export async function POST(request: NextRequest) {
       }
 
       if (data.contaParaCredito) {
-        yPos += 6;
-        pdf.setFontSize(9);
+        yPos += 4;
+        pdf.setFontSize(7.5);
         pdf.setTextColor(34, 197, 94); // emerald-600
         pdf.text('CONTA PARA CRÉDITO', margin, yPos);
       }
 
       // Informações bancárias para recibos pendentes
       if (data.status === 'Pendente' && (data.bancoNome || data.bancoAgencia || data.bancoConta)) {
-        yPos += 10;
+        yPos += 4;
         pdf.setDrawColor(217, 119, 6); // amber-600
-        pdf.setLineWidth(0.5);
+        pdf.setLineWidth(0.3);
         pdf.line(margin, yPos, pageWidth - margin, yPos);
 
-        yPos += 6;
-        pdf.setFontSize(9);
+        yPos += 4;
+        pdf.setFontSize(7.5);
         pdf.setTextColor(217, 119, 6); // amber-600
         pdf.setFont('helvetica', 'bold');
         pdf.text('DADOS BANCÁRIOS PARA PAGAMENTO', margin, yPos);
 
-        yPos += 6;
-        pdf.setFontSize(8);
+        yPos += 4;
+        pdf.setFontSize(6.5);
         pdf.setTextColor(60, 60, 60);
         pdf.setFont('helvetica', 'normal');
         const bancoInfo: string[] = [];
@@ -326,203 +347,283 @@ export async function POST(request: NextRequest) {
         if (data.bancoConta) bancoInfo.push(`Conta: ${data.bancoConta}`);
         if (data.bancoTipoConta) bancoInfo.push(`Tipo: ${data.bancoTipoConta}`);
         if (bancoInfo.length > 0) {
-          pdf.text(bancoInfo.join(' | '), margin, yPos);
+          const bancoText = bancoInfo.join(' | ');
+          const bancoLines = pdf.splitTextToSize(bancoText, contentWidth);
+          pdf.text(bancoLines, margin, yPos);
+          yPos += (bancoLines.length * 3.5);
         }
+      } else {
+        yPos += 3;
       }
     }
 
     // Referente a
-    yPos += 15;
-    pdf.setFontSize(10);
+    yPos += 4;
+    pdf.setFontSize(8.5);
     pdf.setTextColor(60, 60, 60);
     pdf.setFont('helvetica', 'bold');
     pdf.text('REFERENTE A', margin, yPos);
 
-    pdf.setDrawColor(200, 200, 200);
-    pdf.line(margin, yPos + 1, pageWidth - margin, yPos + 1);
+    pdf.setDrawColor(220, 220, 220);
+    pdf.setLineWidth(0.2);
+    pdf.line(margin, yPos + 0.5, pageWidth - margin, yPos + 0.5);
 
-    yPos += 8;
-    pdf.setFontSize(10);
+    yPos += 4;
+    pdf.setFontSize(7.5);
     pdf.setTextColor(40, 40, 40);
     pdf.setFont('helvetica', 'normal');
     const referenteLines = pdf.splitTextToSize(data.referente, contentWidth);
     pdf.text(referenteLines, margin, yPos);
+    yPos += (referenteLines.length * 3.5) + 3; // Calcular espaço após referente
 
     // Forma de Pagamento
-    yPos += (referenteLines.length * 5) + 10;
-    pdf.setFontSize(10);
+    yPos += 3;
+    pdf.setFontSize(8.5);
     pdf.setTextColor(60, 60, 60);
     pdf.setFont('helvetica', 'bold');
     pdf.text('FORMA DE PAGAMENTO', margin, yPos);
 
-    pdf.setDrawColor(200, 200, 200);
-    pdf.line(margin, yPos + 1, pageWidth - margin, yPos + 1);
+    pdf.setDrawColor(220, 220, 220);
+    pdf.setLineWidth(0.2);
+    pdf.line(margin, yPos + 0.5, pageWidth - margin, yPos + 0.5);
 
-    yPos += 8;
-    pdf.setFontSize(10);
+    yPos += 4;
+    pdf.setFontSize(7.5);
     pdf.setTextColor(40, 40, 40);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(data.formaPagamento, margin, yPos);
+    const formaPagamentoLines = pdf.splitTextToSize(data.formaPagamento, contentWidth);
+    pdf.text(formaPagamentoLines, margin, yPos);
+    yPos += (formaPagamentoLines.length * 3.5) + 4; // Espaço após forma de pagamento
 
-    // Footer - Emitido por e QR Code
-    yPos = pageHeight - 80;
-    pdf.setDrawColor(150, 150, 150);
-    pdf.setLineWidth(0.5);
-    pdf.line(margin, yPos, pageWidth - margin, yPos);
+    // Footer - Layout compacto para uma única página
+    // Espaço necessário reduzido: ~75mm (emitido por + assinatura + hash + QR codes + notas)
+    const footerSpaceNeeded = 75;
+    const minFooterY = pageHeight - footerSpaceNeeded;
 
-    yPos += 8;
-    pdf.setFontSize(10);
+    // Adicionar espaço mínimo antes do footer
+    yPos += 3;
+
+    // Garantir que o footer comece em uma posição adequada sem sobreposição
+    let footerStartY = Math.max(yPos, minFooterY - 3);
+
+    // Se o conteúdo principal está muito próximo do footer, ajustar
+    if (yPos > minFooterY - 3) {
+      footerStartY = minFooterY - 3;
+    }
+
+    // Linha separadora do footer (mais sutil)
+    pdf.setDrawColor(220, 220, 220);
+    pdf.setLineWidth(0.3);
+    pdf.line(margin, footerStartY, pageWidth - margin, footerStartY);
+
+    // Calcular posição dos QR Codes (lado direito) - tamanho reduzido
+    const qrSize = 22; // Reduzido para evitar sobreposição
+    const qrX = pageWidth - margin - qrSize;
+    // Posicionar QR Code no início do footer
+    const qrY = footerStartY + 0.5;
+
+    // QR Code de Verificação (sempre no canto superior direito do footer)
+    pdf.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+    pdf.setFontSize(5);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('Código de Verificação', qrX + (qrSize / 2), qrY + qrSize + 2, { align: 'center' });
+
+    // Seção "EMITIDO POR" - lado esquerdo do footer (compacto)
+    // Garantir que não sobreponha o QR Code (qrY + qrSize + 2 + 2 = qrY + qrSize + 4)
+    let emitidoPorY = Math.max(footerStartY + 3, qrY + qrSize + 4);
+    pdf.setFontSize(7);
     pdf.setTextColor(60, 60, 60);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('EMITIDO POR', margin, yPos);
+    pdf.text('EMITIDO POR', margin, emitidoPorY);
 
-    yPos += 6;
-    pdf.setFontSize(10);
+    emitidoPorY += 3.5;
+    pdf.setFontSize(7);
     pdf.setTextColor(40, 40, 40);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(data.emitidoPor, margin, yPos);
+    const emitidoPorLines = pdf.splitTextToSize(data.emitidoPor, contentWidth / 2 - 20);
+    pdf.text(emitidoPorLines, margin, emitidoPorY);
+    emitidoPorY += (emitidoPorLines.length * 2.8) + 1.5;
 
     if (data.emitidoPorNome) {
-      yPos += 5;
-      pdf.setFontSize(8);
+      emitidoPorY += 2;
+      pdf.setFontSize(6);
       pdf.setFont('helvetica', 'italic');
       pdf.setTextColor(100, 100, 100);
-      pdf.text(`Emitido por: ${data.emitidoPorNome}`, margin, yPos);
+      pdf.text(`Emitido por: ${data.emitidoPorNome}`, margin, emitidoPorY);
     }
 
-    yPos += 5;
-    pdf.setFontSize(9);
+    emitidoPorY += 2.5;
+    pdf.setFontSize(6);
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(80, 80, 80);
-    pdf.text(`Doc.: ${formatarCPFCNPJ(data.cpfEmitente)}`, margin, yPos);
+    pdf.text(`Doc.: ${formatarCPFCNPJ(data.cpfEmitente)}`, margin, emitidoPorY);
 
-    yPos += 5;
-    pdf.text(`CEP: ${formatarCEP(data.cepEmitente)}`, margin, yPos);
+    emitidoPorY += 2.5;
+    pdf.text(`CEP: ${formatarCEP(data.cepEmitente)}`, margin, emitidoPorY);
 
-    yPos += 5;
-    pdf.text(data.enderecoEmitente, margin, yPos);
+    emitidoPorY += 2.5;
+    const enderecoLines = pdf.splitTextToSize(data.enderecoEmitente, contentWidth / 2 - 20);
+    pdf.text(enderecoLines, margin, emitidoPorY);
+    emitidoPorY += (enderecoLines.length * 2.8);
 
-    yPos += 5;
-    pdf.text(`Tel: ${data.telefoneEmitente}`, margin, yPos);
+    emitidoPorY += 2.5;
+    pdf.text(`Tel: ${data.telefoneEmitente}`, margin, emitidoPorY);
 
-    yPos += 5;
-    pdf.text(`Email: ${data.emailEmitente}`, margin, yPos);
+    emitidoPorY += 2.5;
+    pdf.text(`Email: ${data.emailEmitente}`, margin, emitidoPorY);
 
-    // Assinatura Digital com Hash
-    yPos += 15;
-    pdf.setDrawColor(150, 150, 150);
-    pdf.line(margin, yPos, margin + 80, yPos);
-    pdf.setFontSize(8);
-    pdf.setTextColor(100, 100, 100);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('ASSINATURA CORPORATIVA', margin + 40, yPos + 4, { align: 'center' });
+    // Atualizar yPos para o próximo elemento
+    yPos = emitidoPorY;
 
-    // Hash sempre está disponível (foi gerado acima)
-    yPos += 10;
-    pdf.setFontSize(6);
-    pdf.setTextColor(60, 60, 60);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('HASH ÚNICO DE AUTENTICAÇÃO:', margin, yPos);
-    yPos += 5;
-    pdf.setFont('courier', 'normal');
-    pdf.setFontSize(5);
-    pdf.setTextColor(40, 40, 40);
-    const hashLines = pdf.splitTextToSize(hash, 80);
-    pdf.text(hashLines, margin, yPos);
-    yPos += (hashLines.length * 3) + 3;
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(4);
-    pdf.setTextColor(100, 100, 100);
-    pdf.text('Este hash garante a autenticidade e integridade deste documento.', margin, yPos);
-    pdf.setFont('helvetica', 'normal');
+    // QR Code PIX (apenas para recibos pendentes) - lado esquerdo do footer (compacto)
+    const notaRodapeY = pageHeight - 24;
+    let pixQrY: number | null = null;
 
-    // QR Code de Verificação
-    const qrSize = 35;
-    const qrX = pageWidth - margin - qrSize;
-    const qrY = pageHeight - 75;
-    pdf.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
-
-    pdf.setFontSize(7);
-    pdf.setTextColor(100, 100, 100);
-    pdf.text('Código de Verificação', qrX + (qrSize / 2), qrY + qrSize + 4, { align: 'center' });
-
-    // QR Code PIX (apenas para recibos pendentes)
     if (data.status === 'Pendente' && pixQrCodeDataUrl) {
-      const pixQrSize = 40;
+      // Posicionar abaixo dos dados do emitente, mas garantir espaço suficiente
+      pixQrY = emitidoPorY + 1; // Abaixo dos dados do emitente
+      const pixQrSize = 24; // Reduzido ainda mais
       const pixQrX = margin;
-      const pixQrY = pageHeight - 100;
+      const pixBoxHeight = pixQrSize + 10; // Altura reduzida do box
 
-      // Box destacado para PIX
-      pdf.setFillColor(236, 253, 245); // emerald-50
-      pdf.setDrawColor(16, 185, 129); // emerald-600
-      pdf.setLineWidth(1);
-      pdf.roundedRect(pixQrX - 5, pixQrY - 8, pixQrSize + 10, pixQrSize + 35, 2, 2, 'FD');
+      // Verificar se há espaço suficiente antes das notas e se não sobrepõe a assinatura
+      const assinaturaStartY = notaRodapeY - 20;
+      if (pixQrY && pixQrY + pixBoxHeight < assinaturaStartY - 2 && pixQrY + pixBoxHeight < notaRodapeY - 3) {
+        // Box destacado para PIX (mais sutil)
+        pdf.setFillColor(240, 253, 244); // emerald-50 mais claro
+        pdf.setDrawColor(16, 185, 129); // emerald-600
+        pdf.setLineWidth(0.5);
+        pdf.roundedRect(pixQrX - 3, pixQrY - 3, pixQrSize + 6, pixBoxHeight, 1.5, 1.5, 'FD');
 
-      pdf.addImage(pixQrCodeDataUrl, 'PNG', pixQrX, pixQrY, pixQrSize, pixQrSize);
+        pdf.addImage(pixQrCodeDataUrl, 'PNG', pixQrX, pixQrY, pixQrSize, pixQrSize);
 
-      pdf.setFontSize(7);
-      pdf.setTextColor(16, 185, 129); // emerald-600
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('PIX - Escaneie para pagar', pixQrX + (pixQrSize / 2), pixQrY + pixQrSize + 4, { align: 'center' });
-
-      if (pixKey) {
         pdf.setFontSize(6);
-        pdf.setTextColor(80, 80, 80);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(`Chave: ${pixKey}`, pixQrX + (pixQrSize / 2), pixQrY + pixQrSize + 8, { align: 'center' });
-      }
-
-      // Código PIX Copia e Cola
-      if (pixPayload) {
-        yPos = pixQrY + pixQrSize + 15;
-        pdf.setFontSize(5);
         pdf.setTextColor(16, 185, 129); // emerald-600
         pdf.setFont('helvetica', 'bold');
-        pdf.text('Código PIX Copia e Cola:', margin + pixQrSize + 15, yPos);
+        pdf.text('PIX - Escaneie para pagar', pixQrX + (pixQrSize / 2), pixQrY + pixQrSize + 3, { align: 'center' });
 
-        yPos += 4;
-        pdf.setFontSize(4);
-        pdf.setFont('courier', 'normal');
-        pdf.setTextColor(40, 40, 40);
-        const pixLines = pdf.splitTextToSize(pixPayload, contentWidth - pixQrSize - 25);
-        pdf.text(pixLines, margin + pixQrSize + 15, yPos);
+        if (pixKey) {
+          pdf.setFontSize(5);
+          pdf.setTextColor(80, 80, 80);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(`Chave: ${pixKey}`, pixQrX + (pixQrSize / 2), pixQrY + pixQrSize + 6, { align: 'center' });
+        }
+
+        // Código PIX Copia e Cola (se houver espaço suficiente)
+        if (pixPayload && pixQrY + pixBoxHeight + 10 < notaRodapeY - 5) {
+          const pixCodeY = pixQrY + pixQrSize + 9;
+          pdf.setFontSize(5);
+          pdf.setTextColor(16, 185, 129); // emerald-600
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('Código PIX Copia e Cola:', margin + pixQrSize + 10, pixCodeY);
+
+          const pixCodeY2 = pixCodeY + 3;
+          pdf.setFontSize(4);
+          pdf.setFont('courier', 'normal');
+          pdf.setTextColor(40, 40, 40);
+          const pixLines = pdf.splitTextToSize(pixPayload, contentWidth - pixQrSize - 20);
+          const pixLinesHeight = pixLines.length * 2.5;
+
+          // Verificar se há espaço para o código PIX antes de adicionar
+          if (pixCodeY2 + pixLinesHeight < notaRodapeY - 5) {
+            pdf.text(pixLines, margin + pixQrSize + 10, pixCodeY2);
+          }
+        }
+
+        // Atualizar yPos para considerar o QR Code PIX
+        yPos = Math.max(yPos, pixQrY + pixBoxHeight + 2);
       }
     }
 
-    // Nota de rodapé
-    yPos = pageHeight - 35;
-    pdf.setFillColor(250, 250, 250);
-    pdf.roundedRect(margin, yPos, contentWidth, 15, 2, 2, 'F');
+    // Assinatura Digital com Hash (lado esquerdo, abaixo dos dados do emitente) - compacto
+    const maxAssinaturaY = notaRodapeY - 16; // Deixar espaço antes das notas
 
-    pdf.setFontSize(7);
+    let assinaturaY = yPos + 1.5;
+
+    // Ajustar se estiver muito próximo do QR Code PIX ou das notas
+    if (data.status === 'Pendente' && pixQrCodeDataUrl && pixQrY) {
+      const pixQrBottom = pixQrY + 24 + 10; // pixQrY + pixQrSize + box height
+      assinaturaY = Math.max(assinaturaY, pixQrBottom + 1.5);
+    }
+
+    // Garantir que não ultrapasse o limite antes das notas
+    assinaturaY = Math.min(assinaturaY, maxAssinaturaY);
+
+    // Verificar se há espaço suficiente antes de adicionar assinatura
+    if (assinaturaY + 12 < notaRodapeY) {
+      pdf.setDrawColor(200, 200, 200);
+      pdf.setLineWidth(0.3);
+      pdf.line(margin, assinaturaY, margin + 55, assinaturaY);
+      pdf.setFontSize(6.5);
+      pdf.setTextColor(100, 100, 100);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('ASSINATURA CORPORATIVA', margin + 27.5, assinaturaY + 2.5, { align: 'center' });
+
+      // Hash sempre está disponível (foi gerado acima)
+      let hashY = assinaturaY + 5.5;
+
+      // Verificar se há espaço para o hash antes de adicionar
+      if (hashY + 12 < notaRodapeY) {
+        pdf.setFontSize(4.5);
+        pdf.setTextColor(60, 60, 60);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('HASH ÚNICO DE AUTENTICAÇÃO:', margin, hashY);
+        hashY += 3.5;
+        pdf.setFont('courier', 'normal');
+        pdf.setFontSize(3.5);
+        pdf.setTextColor(40, 40, 40);
+        const hashLines = pdf.splitTextToSize(hash, 65);
+        pdf.text(hashLines, margin, hashY);
+        hashY += (hashLines.length * 2.2) + 1.5;
+
+        // Verificar espaço para texto adicional
+        if (hashY + 3 < notaRodapeY) {
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(3);
+          pdf.setTextColor(100, 100, 100);
+          pdf.text('Este hash garante a autenticidade e integridade deste documento.', margin, hashY);
+        }
+      }
+    }
+
+    // Nota de rodapé (sempre no final da última página) - compacto
+    const notaY = pageHeight - 22;
+    const notaHeight = 7;
+
+    pdf.setFillColor(250, 250, 250);
+    pdf.roundedRect(margin, notaY, contentWidth, notaHeight, 1.5, 1.5, 'F');
+
+    pdf.setFontSize(5);
     pdf.setTextColor(120, 120, 120);
     pdf.setFont('helvetica', 'normal');
     const nota = 'Este recibo possui validade jurídica e comprova o pagamento realizado. Guarde-o para fins de comprovação e controle financeiro.';
     const notaLines = pdf.splitTextToSize(nota, contentWidth - 4);
-    pdf.text(notaLines, pageWidth / 2, yPos + 4, { align: 'center' });
+    pdf.text(notaLines, pageWidth / 2, notaY + 2, { align: 'center' });
 
-    // Nota de Verificação
-    yPos = pageHeight - 18;
+    // Nota de Verificação (sempre no final da última página) - compacto
+    const verificacaoY = pageHeight - 12;
+    const verificacaoHeight = 7;
+
     pdf.setFillColor(240, 240, 240);
-    pdf.setDrawColor(150, 150, 150);
-    pdf.setLineWidth(0.5);
-    pdf.roundedRect(margin, yPos, contentWidth, 12, 2, 2, 'FD');
-
-    pdf.setFontSize(6);
-    pdf.setTextColor(80, 80, 80);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('NOTA DE VERIFICAÇÃO', pageWidth / 2, yPos + 4, { align: 'center' });
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.3);
+    pdf.roundedRect(margin, verificacaoY, contentWidth, verificacaoHeight, 1.5, 1.5, 'FD');
 
     pdf.setFontSize(5);
+    pdf.setTextColor(80, 80, 80);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('NOTA DE VERIFICAÇÃO', pageWidth / 2, verificacaoY + 3, { align: 'center' });
+
+    pdf.setFontSize(4);
     pdf.setFont('courier', 'normal');
     pdf.setTextColor(60, 60, 60);
     const dataHoraVerificacao = formatarDataHoraCompleta();
-    pdf.text(`Documento verificado em: ${dataHoraVerificacao}`, pageWidth / 2, yPos + 7, { align: 'center' });
+    pdf.text(`Documento verificado em: ${dataHoraVerificacao}`, pageWidth / 2, verificacaoY + 5.5, { align: 'center' });
 
-    pdf.setFontSize(4);
+    pdf.setFontSize(3.5);
     pdf.setFont('helvetica', 'italic');
     pdf.setTextColor(100, 100, 100);
-    pdf.text('Esta data e hora servem para autenticar a consulta deste documento no sistema.', pageWidth / 2, yPos + 10, { align: 'center' });
+    pdf.text('Esta data e hora servem para autenticar a consulta deste documento no sistema.', pageWidth / 2, verificacaoY + 8, { align: 'center' });
 
     // Adicionar logo Habitvs no rodapé
     drawHabitvsLogoPDF(pdf, pageWidth, pageHeight, margin);
