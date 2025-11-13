@@ -166,7 +166,7 @@ export default function LandingPage() {
           >
             PÔR DO SOL
             <br />
-            <span className="bg-gradient-to-r from-emerald-300 via-amber-200 to-emerald-300 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-emerald-300 via-amber-200 to-emerald-300 bg-clip-text text-transparent">
               ECO VILLAGE
             </span>
           </motion.h1>
@@ -234,7 +234,7 @@ export default function LandingPage() {
               fill
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/60 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-emerald-950/60 via-transparent to-transparent" />
           </motion.div>
 
           {/* Texto à direita */}
@@ -249,7 +249,7 @@ export default function LandingPage() {
             <h2 className="text-5xl font-bold leading-tight md:text-6xl" style={{ fontFamily: 'var(--font-playfair), serif' }}>
               O CONDOMÍNIO RESIDENCIAL
               <br />
-              <span className="bg-gradient-to-r from-emerald-300 to-amber-200 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-emerald-300 to-amber-200 bg-clip-text text-transparent">
                 MAIS SUSTENTÁVEL
               </span>
               <br />
@@ -321,7 +321,7 @@ export default function LandingPage() {
             <h2 className="text-5xl font-bold leading-tight text-slate-900 md:text-6xl" style={{ fontFamily: 'var(--font-playfair), serif' }}>
               INSPIRADO NA HARMONIA
               <br />
-              <span className="bg-gradient-to-r from-emerald-600 to-amber-600 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-emerald-600 to-amber-600 bg-clip-text text-transparent">
                 COM A NATUREZA
               </span>
             </h2>
@@ -358,7 +358,7 @@ export default function LandingPage() {
               fill
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/40 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-emerald-950/40 via-transparent to-transparent" />
           </motion.div>
         </div>
       </section>
@@ -478,7 +478,7 @@ export default function LandingPage() {
                 fill
                 className="object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/60 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-emerald-950/60 via-transparent to-transparent" />
             </motion.div>
           </motion.div>
         </div>
@@ -585,7 +585,7 @@ export default function LandingPage() {
           >
             UM CONVITE A VIVER A VIDA
             <br />
-            <span className="bg-gradient-to-r from-emerald-300 via-amber-200 to-emerald-300 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-emerald-300 via-amber-200 to-emerald-300 bg-clip-text text-transparent">
               COM PROPÓSITO
             </span>
             <br />
@@ -672,7 +672,7 @@ export default function LandingPage() {
 
       {/* Modal de zoom */}
       {zoomImage && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 p-6">
+        <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/95 p-6">
           <button
             className="absolute right-6 top-6 rounded-full border border-white/40 bg-white/10 px-6 py-3 text-sm font-semibold uppercase tracking-[0.35em] text-white backdrop-blur transition hover:bg-white/20"
             onClick={() => setZoomImage(null)}
@@ -686,7 +686,7 @@ export default function LandingPage() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 py-12 text-white">
+      <footer className="border-t border-slate-200 bg-linear-to-br from-slate-900 via-slate-950 to-slate-900 py-12 text-white">
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-8 text-center">
             <h4 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-playfair), serif' }}>
