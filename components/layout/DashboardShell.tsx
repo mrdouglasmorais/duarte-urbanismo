@@ -6,6 +6,7 @@ import { EMPRESA_TELEFONE } from '@/lib/constants';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { Footer } from '@/components/Footer';
 
 const TIMEZONE_SC = 'America/Sao_Paulo';
 
@@ -107,13 +108,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         <PageTransition>{children}</PageTransition>
       </main>
 
-      <footer className="mt-10 border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl flex-wrap gap-2 px-4 py-4 text-xs uppercase tracking-[0.25em] text-slate-500 sm:px-6">
-          <span>Rua José Antonio da Silva, 152 · Sala 03, Escritório 81, Centro</span>
-          <span>São João Batista - SC · CEP 88.240-000</span>
-          <span>Contato: {EMPRESA_TELEFONE}</span>
-        </div>
-      </footer>
+      <Footer variant="light" showFullFooter={false} />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { buildQrCodePayload, buildShareUrl, generateReciboHash } from '@/lib/authenticity';
 import { APP_BASE_URL } from '@/lib/constants';
 import { drawLogoPDF } from '@/lib/logo-pdf';
+import { drawHabitvsLogoPDF } from '@/lib/habitvs-logo-pdf';
 import type { ReciboPayload } from '@/lib/recibos';
 import { sanitizeReciboData, validateReciboData } from '@/lib/recibos';
 import { saveRecibo } from '@/lib/recibos-repository';
@@ -522,6 +523,9 @@ export async function POST(request: NextRequest) {
     pdf.setFont('helvetica', 'italic');
     pdf.setTextColor(100, 100, 100);
     pdf.text('Esta data e hora servem para autenticar a consulta deste documento no sistema.', pageWidth / 2, yPos + 10, { align: 'center' });
+
+    // Adicionar logo Habitvs no rodapé
+    drawHabitvsLogoPDF(pdf, pageWidth, pageHeight, margin);
 
     // Gerar PDF como Buffer
     let pdfBuffer: Buffer;

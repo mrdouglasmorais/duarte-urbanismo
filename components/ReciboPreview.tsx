@@ -379,6 +379,38 @@ export default function ReciboPreview({ data, qrCodeData, onPrint, onGeneratePDF
         </p>
       </div>
 
+      {/* Logo Habitvs */}
+      <div className="mt-8 flex flex-col items-center justify-center gap-2 border-t border-slate-200 pt-6">
+        <p className="text-xs text-slate-500">
+          Tecnologia por{' '}
+          <a
+            href="https://habitvs.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-slate-700 hover:text-slate-900 transition"
+          >
+            Habitvs
+          </a>
+          {' '}empoderando o setor imobiliário.
+        </p>
+        <a
+          href="https://habitvs.io"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group relative inline-block"
+        >
+          <div className="absolute inset-0 rounded-lg bg-emerald-500/30 opacity-75 blur-md animate-pulse" style={{ animationDuration: '2s' }} />
+          <Image
+            src="/habitvs-dark.png"
+            alt="Habitvs - Tecnologia para o setor imobiliário"
+            width={100}
+            height={33}
+            className="relative h-6 w-auto transition-transform duration-300 group-hover:scale-110 animate-pulse"
+            style={{ animationDuration: '2s', animationTimingFunction: 'ease-in-out' }}
+          />
+        </a>
+      </div>
+
       {/* Botões de Ação */}
       {(onPrint || onGeneratePDF) && (
         <div className="no-print mt-8 flex flex-wrap gap-4 justify-center">

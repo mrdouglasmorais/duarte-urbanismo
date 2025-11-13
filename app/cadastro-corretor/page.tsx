@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useRef, ChangeEvent } from 'react';
 import { useFirebaseAuth } from '@/contexts/firebase-auth-context';
+import { toastSuccess, toastError, toastWarning, handleApiError } from '@/lib/toast';
+import { Footer } from '@/components/Footer';
 
 interface FormData {
   nome: string;
@@ -121,20 +123,26 @@ export default function CadastroCorretorPage() {
 
     // Validações de senha
     if (!formData.senha || formData.senha.length < 6) {
-      setErrorMessage('A senha deve ter no mínimo 6 caracteres');
+      const errorMsg = 'A senha deve ter no mínimo 6 caracteres';
+      setErrorMessage(errorMsg);
+      toastWarning(errorMsg);
       setIsSubmitting(false);
       return;
     }
 
     if (formData.senha !== formData.confirmarSenha) {
-      setErrorMessage('As senhas não coincidem');
+      const errorMsg = 'As senhas não coincidem';
+      setErrorMessage(errorMsg);
+      toastWarning(errorMsg);
       setIsSubmitting(false);
       return;
     }
 
     // Validação de aceite de termos
     if (!formData.aceiteTermos) {
-      setErrorMessage('Você deve aceitar os termos e condições para continuar');
+      const errorMsg = 'Você deve aceitar os termos e condições para continuar';
+      setErrorMessage(errorMsg);
+      toastWarning(errorMsg);
       setIsSubmitting(false);
       return;
     }
@@ -195,6 +203,9 @@ export default function CadastroCorretorPage() {
         // Se falhar ao salvar dados do corretor, o usuário já foi criado
         // Isso pode ser tratado depois pelo admin
         console.warn('Usuário criado mas dados do corretor não foram salvos:', corretorResult.error);
+        toastWarning('Conta criada, mas alguns dados não foram salvos. Entre em contato com o administrador.');
+      } else {
+        toastSuccess('Cadastro realizado com sucesso! Aguarde aprovação do administrador.');
       }
 
       setSubmitStatus('success');
@@ -228,7 +239,9 @@ export default function CadastroCorretorPage() {
       }
     } catch (error) {
       setSubmitStatus('error');
-      setErrorMessage(error instanceof Error ? error.message : 'Erro ao cadastrar corretor. Tente novamente.');
+      const errorMsg = error instanceof Error ? error.message : 'Erro ao cadastrar corretor. Tente novamente.';
+      setErrorMessage(errorMsg);
+      handleApiError(error, errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -871,36 +884,7 @@ export default function CadastroCorretorPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-linear-to-br from-slate-900 via-slate-950 to-slate-900 py-12 text-white">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-            <div className="text-center md:text-left">
-              <Image
-                src="/logo_duarte_sem_fundo.png"
-                alt="Duarte Urbanismo"
-                width={200}
-                height={65}
-                className="h-12 w-auto"
-              />
-              <p className="mt-4 text-sm text-white/70">
-                Rua José Antonio da Silva, 152 · Sala 03, Escritório 81, Centro
-                <br />
-                São João Batista/SC · CEP 88.240-000
-                <br />
-                Contato: +55 47 9211-2284
-              </p>
-            </div>
-            <div className="flex flex-col gap-4 text-center md:text-right">
-              <Link
-                href="/"
-                className="rounded-full border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white backdrop-blur transition hover:bg-white/20"
-              >
-                Voltar ao Início
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer variant="dark" showFullFooter={false} />
 
       {/* Modal do Termo */}
       {showTermoModal && (

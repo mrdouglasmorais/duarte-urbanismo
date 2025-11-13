@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useFirebaseAuth } from '@/contexts/firebase-auth-context';
+import { toastSuccess, toastError, handleApiError } from '@/lib/toast';
 
 function LoginPageContent() {
   const router = useRouter();
@@ -34,11 +35,15 @@ function LoginPageContent() {
       const token = await userCredential.user.getIdToken();
       await setTokenCookie(token);
 
+      toastSuccess('Login realizado com sucesso!');
+
       const redirectTo = searchParams.get('redirectTo') || '/painel';
       router.push(redirectTo);
       router.refresh();
     } catch (err: any) {
-      setError(err.message || 'Erro ao fazer login. Tente novamente.');
+      const errorMessage = err.message || 'Erro ao fazer login. Tente novamente.';
+      setError(errorMessage);
+      toastError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -53,11 +58,15 @@ function LoginPageContent() {
       const token = await userCredential.user.getIdToken();
       await setTokenCookie(token);
 
+      toastSuccess('Login com Google realizado com sucesso!');
+
       const redirectTo = searchParams.get('redirectTo') || '/painel';
       router.push(redirectTo);
       router.refresh();
     } catch (err: any) {
-      setError(err.message || 'Erro ao fazer login com Google.');
+      const errorMessage = err.message || 'Erro ao fazer login com Google.';
+      setError(errorMessage);
+      toastError(errorMessage);
       setIsSubmitting(false);
     }
   };
@@ -71,11 +80,15 @@ function LoginPageContent() {
       const token = await userCredential.user.getIdToken();
       await setTokenCookie(token);
 
+      toastSuccess('Acesso como visitante realizado!');
+
       const redirectTo = searchParams.get('redirectTo') || '/painel';
       router.push(redirectTo);
       router.refresh();
     } catch (err: any) {
-      setError(err.message || 'Erro ao fazer login anônimo.');
+      const errorMessage = err.message || 'Erro ao fazer login anônimo.';
+      setError(errorMessage);
+      toastError(errorMessage);
       setIsSubmitting(false);
     }
   };

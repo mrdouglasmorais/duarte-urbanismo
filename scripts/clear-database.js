@@ -5,12 +5,18 @@ const uri =
 const dbName = 'duarte-urbanismo';
 
 const COLLECTIONS_TO_CLEAR = [
+  // SGCI Collections
   'sgci_empreendimentos',
   'sgci_clientes',
   'sgci_negociacoes',
   'sgci_corretores',
+  // Recibos
   'recibos',
+  // Clientes (área do cliente)
+  'clientes',
+  // Collections antigas (podem não existir mais)
   'usuarios',
+  'users',
   'test_connection', // Coleção de teste
 ];
 
