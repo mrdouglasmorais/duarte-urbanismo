@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, name, phone } = body;
+    const { email, password, passwordConfirmation, name, phone } = body;
 
     // Validações
     if (!email || typeof email !== 'string' || !email.trim()) {
@@ -20,6 +20,14 @@ export async function POST(request: NextRequest) {
     if (!password || typeof password !== 'string' || password.length < 6) {
       return NextResponse.json(
         { error: 'Senha deve ter no mínimo 6 caracteres' },
+        { status: 400 }
+      );
+    }
+
+    // Validação de confirmação de senha (se fornecida)
+    if (passwordConfirmation && password !== passwordConfirmation) {
+      return NextResponse.json(
+        { error: 'As senhas não coincidem' },
         { status: 400 }
       );
     }

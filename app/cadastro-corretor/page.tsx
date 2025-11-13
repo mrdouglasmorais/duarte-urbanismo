@@ -9,6 +9,8 @@ interface FormData {
   nome: string;
   creci: string;
   email: string;
+  senha: string;
+  confirmarSenha: string;
   telefone: string;
   whatsapp: string;
   instagram: string;
@@ -39,6 +41,8 @@ export default function CadastroCorretorPage() {
     nome: '',
     creci: '',
     email: '',
+    senha: '',
+    confirmarSenha: '',
     telefone: '',
     whatsapp: '',
     instagram: '',
@@ -106,16 +110,27 @@ export default function CadastroCorretorPage() {
     setSubmitStatus('idle');
     setErrorMessage('');
 
+    // Validações de senha
+    if (!formData.senha || formData.senha.length < 6) {
+      setErrorMessage('A senha deve ter no mínimo 6 caracteres');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (formData.senha !== formData.confirmarSenha) {
+      setErrorMessage('As senhas não coincidem');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       // Primeiro, criar usuário no sistema de autenticação
-      const password = `temp_${Date.now()}_${Math.random().toString(36).slice(2)}`; // Senha temporária
-
       const registerResponse = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: formData.email,
-          password: password, // Senha temporária, será alterada no primeiro login
+          password: formData.senha,
           name: formData.nome,
           phone: formData.telefone
         })
@@ -171,6 +186,8 @@ export default function CadastroCorretorPage() {
         nome: '',
         creci: '',
         email: '',
+        senha: '',
+        confirmarSenha: '',
         telefone: '',
         whatsapp: '',
         instagram: '',
@@ -363,6 +380,48 @@ export default function CadastroCorretorPage() {
                           className="w-full rounded-2xl border border-slate-200/70 bg-white/80 px-5 py-3.5 text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-sm"
                           placeholder="seu@email.com"
                         />
+                      </div>
+
+                      <div>
+                        <label htmlFor="senha" className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
+                          Senha *
+                        </label>
+                        <input
+                          type="password"
+                          id="senha"
+                          name="senha"
+                          required
+                          value={formData.senha}
+                          onChange={handleInputChange}
+                          className="w-full rounded-2xl border border-slate-200/70 bg-white/80 px-5 py-3.5 text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-sm"
+                          placeholder="Mínimo 6 caracteres"
+                          minLength={6}
+                        />
+                        <p className="mt-1 text-xs text-slate-500">Mínimo 6 caracteres</p>
+                      </div>
+
+                      <div>
+                        <label htmlFor="confirmarSenha" className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
+                          Confirmar Senha *
+                        </label>
+                        <input
+                          type="password"
+                          id="confirmarSenha"
+                          name="confirmarSenha"
+                          required
+                          value={formData.confirmarSenha}
+                          onChange={handleInputChange}
+                          className={`w-full rounded-2xl border px-5 py-3.5 text-slate-900 transition focus:outline-none focus:ring-2 shadow-sm ${
+                            formData.confirmarSenha && formData.senha !== formData.confirmarSenha
+                              ? 'border-red-300 bg-red-50/50 focus:border-red-500 focus:ring-red-500/20'
+                              : 'border-slate-200/70 bg-white/80 focus:border-emerald-500 focus:ring-emerald-500/20'
+                          }`}
+                          placeholder="Digite a senha novamente"
+                          minLength={6}
+                        />
+                        {formData.confirmarSenha && formData.senha !== formData.confirmarSenha && (
+                          <p className="mt-1 text-xs text-red-600">As senhas não coincidem</p>
+                        )}
                       </div>
 
                       <div>

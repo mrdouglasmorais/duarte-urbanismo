@@ -6,15 +6,15 @@ export const runtime = 'nodejs';
 
 /**
  * Endpoint para criar o primeiro SUPER_ADMIN
- * 
+ *
  * POST /api/admin/create-super-admin
- * 
+ *
  * Body: {
  *   email: string (opcional, padrão: admin@duarteurbanismo.com)
  *   password: string (opcional, padrão: admin123456)
  *   name: string (opcional, padrão: Administrador Principal)
  * }
- * 
+ *
  * NOTA: Este endpoint deve ser protegido ou removido após criar o primeiro admin
  */
 export async function POST(request: NextRequest) {
@@ -22,10 +22,10 @@ export async function POST(request: NextRequest) {
     // Verificar se já existe SUPER_ADMIN
     const { findUserByEmail } = await import('@/lib/auth');
     const { getUserModel } = await import('@/models/User');
-    
+
     const User = await getUserModel();
     const existingAdmin = await User.findOne({ role: 'SUPER_ADMIN', status: 'APPROVED' });
-    
+
     if (existingAdmin) {
       return NextResponse.json(
         {
@@ -58,12 +58,12 @@ export async function POST(request: NextRequest) {
       // Atualizar usuário existente para SUPER_ADMIN
       const { hashPassword } = await import('@/lib/auth');
       const passwordHash = await hashPassword(password);
-      
+
       existingUser.passwordHash = passwordHash;
       existingUser.role = 'SUPER_ADMIN';
       existingUser.status = 'APPROVED';
       existingUser.name = name;
-      
+
       await existingUser.save();
 
       return NextResponse.json(

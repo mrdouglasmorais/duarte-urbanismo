@@ -1,14 +1,39 @@
-# 🔐 Credenciais do SUPER_ADMIN
+# 🔐 Credenciais dos SUPER_ADMINs
 
-## ✅ Primeiro SUPER_ADMIN Criado
+## ✅ 4 SUPER_ADMINs Criados
 
-O primeiro SUPER_ADMIN foi criado com sucesso no banco de dados.
+Todos os 4 SUPER_ADMINs foram criados com sucesso no banco de dados e podem aprovar/reprovar entrada de novos corretores.
 
 ### 📝 Credenciais de Acesso
 
+#### 1. Daniel Duarte - Proprietário
 ```
-Email: admin@duarteurbanismo.com
-Senha: admin123456
+Email: daniel.duarte@duarteurbanismo.com
+Senha: Daniel2024!
+Role: SUPER_ADMIN
+Status: APPROVED
+```
+
+#### 2. Douglas Morais - Diretor de tecnologia e negócios
+```
+Email: douglas.morais@duarteurbanismo.com
+Senha: Douglas2024!
+Role: SUPER_ADMIN
+Status: APPROVED
+```
+
+#### 3. Gelvane Silva - Corretor Chefe
+```
+Email: gelvane.silva@duarteurbanismo.com
+Senha: Gelvane2024!
+Role: SUPER_ADMIN
+Status: APPROVED
+```
+
+#### 4. Stephanie Santos - Administrativo
+```
+Email: stephanie.santos@duarteurbanismo.com
+Senha: Stephanie2024!
 Role: SUPER_ADMIN
 Status: APPROVED
 ```
@@ -20,7 +45,7 @@ Status: APPROVED
    http://localhost:3000/login
    ```
 
-2. **Faça login com as credenciais acima**
+2. **Faça login com qualquer uma das credenciais acima**
 
 3. **Após o login, você será redirecionado para:**
    - `/painel` - Dashboard principal
@@ -28,50 +53,35 @@ Status: APPROVED
 
 ### ⚠️ IMPORTANTE
 
-**Altere a senha após o primeiro login!**
+**Altere as senhas após o primeiro login!**
 
 Para alterar a senha, você pode:
 - Criar um endpoint de alteração de senha (a implementar)
 - Ou usar o script para atualizar manualmente
 
-### 🔄 Criar Novo SUPER_ADMIN
+### 🔄 Recriar SUPER_ADMINs
 
-Se precisar criar outro SUPER_ADMIN, você pode:
+Se precisar recriar os SUPER_ADMINs, execute:
 
-1. **Via Script:**
-   ```bash
-   node scripts/create-super-admin.js
-   ```
-
-2. **Via API (apenas se não existir SUPER_ADMIN):**
-   ```bash
-   curl -X POST http://localhost:3000/api/admin/create-super-admin \
-     -H "Content-Type: application/json" \
-     -d '{
-       "email": "novo-admin@duarteurbanismo.com",
-       "password": "senha123456",
-       "name": "Novo Administrador"
-     }'
-   ```
-
-### 📊 Fluxo Completo
-
+```bash
+node scripts/create-all-super-admins.js
 ```
-1. Login como SUPER_ADMIN
-   ↓
-2. Acessar /admin/pendentes
-   ↓
-3. Ver lista de corretores pendentes
-   ↓
-4. Aprovar ou rejeitar corretores
-   ↓
-5. Corretor aprovado pode fazer login
-```
+
+O script:
+- Verifica se cada usuário já existe
+- Se existir, atualiza para SUPER_ADMIN com status APPROVED
+- Se não existir, cria novo SUPER_ADMIN
+
+### 📊 Permissões
+
+Todos os 4 SUPER_ADMINs têm as mesmas permissões:
+- ✅ Aprovar/reprovar corretores em `/admin/pendentes`
+- ✅ Acessar todas as rotas administrativas
+- ✅ Gerenciar usuários do sistema
 
 ### 🛡️ Segurança
 
-- ✅ Senha hashada com bcrypt (12 rounds)
+- ✅ Senhas hashadas com bcrypt (12 rounds)
 - ✅ JWT Session com expiração de 8 horas
 - ✅ Proteção de rotas por role
 - ✅ Apenas SUPER_ADMIN pode aprovar/rejeitar usuários
-

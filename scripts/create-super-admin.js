@@ -1,8 +1,8 @@
 /**
  * Script para criar o primeiro SUPER_ADMIN
- * 
+ *
  * Uso: node scripts/create-super-admin.js
- * 
+ *
  * Este script cria um usuário SUPER_ADMIN com:
  * - Email: admin@duarteurbanismo.com
  * - Senha: admin123456
@@ -62,13 +62,13 @@ async function createSuperAdmin() {
     if (existingUser) {
       console.log(`⚠️  Usuário com email ${adminEmail} já existe.`);
       console.log('   Atualizando para SUPER_ADMIN...');
-      
+
       const passwordHash = await bcrypt.hash(adminPassword, 12);
       existingUser.passwordHash = passwordHash;
       existingUser.role = 'SUPER_ADMIN';
       existingUser.status = 'APPROVED';
       existingUser.name = adminName;
-      
+
       await existingUser.save();
       console.log('✅ Usuário atualizado para SUPER_ADMIN com sucesso!');
       console.log(`   Email: ${existingUser.email}`);
@@ -78,7 +78,7 @@ async function createSuperAdmin() {
     } else {
       // Criar novo SUPER_ADMIN
       const passwordHash = await bcrypt.hash(adminPassword, 12);
-      
+
       const superAdmin = new User({
         email: adminEmail,
         passwordHash,
