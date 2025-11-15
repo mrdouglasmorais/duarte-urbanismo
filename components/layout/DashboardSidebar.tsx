@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { useFirebaseAuth } from '@/contexts/firebase-auth-context';
 
 const navLinks = [
   {
@@ -64,6 +65,8 @@ const navLinks = [
 export default function DashboardSidebar() {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { profile } = useFirebaseAuth();
+  const isCorretor = profile?.role === 'CORRETOR';
 
   // Fechar sidebar ao clicar em um link no mobile
   useEffect(() => {
@@ -105,6 +108,11 @@ export default function DashboardSidebar() {
       <nav className="flex-1 overflow-y-auto px-4 py-6">
         <div className="space-y-1">
           {navLinks.map((link) => {
+            // Ocultar "Usuários" para corretores
+            if (link.href === '/painel/usuarios' && isCorretor) {
+              return null;
+            }
+
             const isActive = pathname === link.href || (link.href !== '/painel' && pathname.startsWith(link.href));
             return (
               <Link
@@ -126,6 +134,28 @@ export default function DashboardSidebar() {
               </Link>
             );
           })}
+
+          {/* Link para Perfil do Corretor */}
+          {isCorretor && (
+            <Link
+              href="/corretor/profile"
+              className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
+                pathname === '/corretor/profile'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm'
+                  : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+              }`}
+            >
+              <span className={`${pathname === '/corretor/profile' ? 'text-emerald-600' : 'text-slate-400 group-hover:text-slate-600'}`}>
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </span>
+              <span>Meu Perfil</span>
+              {pathname === '/corretor/profile' && (
+                <span className="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
+              )}
+            </Link>
+          )}
         </div>
       </nav>
 

@@ -4,40 +4,91 @@ import PaymentOverviewCharts from "@/components/dashboard/PaymentOverviewCharts"
 import CorretorLeaderboard from "@/components/dashboard/CorretorLeaderboard";
 import { useSgci } from "@/contexts/sgci-context";
 import { useFirebaseAuth } from "@/contexts/firebase-auth-context";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { formatarMoeda, formatarData } from "@/lib/utils";
+import { toastSuccess, toastError } from "@/lib/toast";
 
-const destaque = {
-  titulo: "🌅 SUPER LANÇAMENTO: PÔR DO SOL ECO VILLAGE! 🌳",
-  descricao:
-    "Seu refúgio de natureza e lazer em Tijucas/SC. Construa sua chácara em um condomínio exclusivo que une tranquilidade, segurança e infraestrutura completa!",
-  localizacao: [
-    "Apenas 4 km do Centro de Tijucas (Bairro Itinga).",
-    "Fácil acesso à BR-101 e praias."
-  ],
-  caracteristicas: [
-    "Lotes amplos, a partir de 1.000 m² (até 3.500 m²).",
-    "32 áreas de lazer exclusivas: club house, trilhas, espaços gourmet e esportivos."
-  ],
-  condicoes: [
-    "Valor base do m²: R$ 350,00",
-    "Entrada mínima: 10%",
-    "Parcelamento: saldo em até 120 parcelas",
-    "Índice de correção: IPCA + 0,85% a.m. direto com a incorporadora"
-  ],
-  contato: "+55 47 9211-2284"
-};
+interface DestaqueData {
+  titulo: string;
+  descricao: string;
+  localizacao: string[];
+  caracteristicas: string[];
+  condicoes: string[];
+  contato: string;
+}
 
 export default function HomePage() {
   const { empreendimentos, clientes, negociacoes, corretores } = useSgci();
   const { profile } = useFirebaseAuth();
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [destaque, setDestaque] = useState<DestaqueData | null>(null);
+  const [loadingDestaque, setLoadingDestaque] = useState(true);
 
   const isAdmin = profile?.role === 'ADMIN' || profile?.role === 'SUPER_ADMIN';
   const corretoresPendentes = useMemo(() =>
     corretores.filter(c => c.status === 'Pendente'),
     [corretores]
   );
+
+  // Carregar dados do empreendimento em destaque
+  useEffect(() => {
+    async function loadDestaque() {
+      try {
+        setLoadingDestaque(true);
+        const response = await fetch('/api/public/empreendimento-destaque-dashboard', { cache: 'no-store' });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.destaque) {
+            setDestaque(data.destaque);
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar destaque:', error);
+      } finally {
+        setLoadingDestaque(false);
+      }
+    }
+    loadDestaque();
+  }, []);
+
+  // Fallback para dados padrão
+  const destaqueData = destaque || {
+    titulo: "🌅 SUPER LANÇAMENTO: PÔR DO SOL ECO VILLAGE! 🌳",
+    descricao: "Carregando informações...",
+    localizacao: [],
+    caracteristicas: [],
+    condicoes: [],
+    contato: ""
+  };
+
+  const handleApproveCorretor = async (corretorId: string, status: 'Aprovado' | 'Rejeitado', nome: string) => {
+    if (!confirm(`Deseja ${status === 'Aprovado' ? 'aprovar' : 'rejeitar'} o corretor ${nome}?`)) return;
+
+    setProcessingId(corretorId);
+    try {
+      const response = await fetch('/api/corretores/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ corretorId, status }),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        toastSuccess(data.message || `Corretor ${status === 'Aprovado' ? 'aprovado' : 'rejeitado'} com sucesso`);
+        // Recarregar a página para atualizar os dados
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        toastError(data.error || `Erro ao ${status === 'Aprovado' ? 'aprovar' : 'rejeitar'} corretor`);
+      }
+    } catch (error) {
+      toastError('Erro ao processar solicitação');
+      console.error(error);
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
   const indicadores = useMemo(() => {
     const unidadesDisponiveis = empreendimentos.filter((item) => item.status === "Disponível").length;
@@ -149,32 +200,110 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Alerta de Corretores Pendentes (apenas para admins) */}
+      {/* Seção de Corretores Pendentes (apenas para admins) */}
       {isAdmin && corretoresPendentes.length > 0 && (
-        <div className="rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-amber-100/50 p-6 shadow-sm">
-          <div className="flex items-start gap-4">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-500">
-              <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-amber-900">
-                {corretoresPendentes.length} corretor{corretoresPendentes.length > 1 ? 'es' : ''} aguardando aprovação
-              </h3>
-              <p className="mt-1 text-sm text-amber-800">
-                Há {corretoresPendentes.length} novo{corretoresPendentes.length > 1 ? 's' : ''} cadastro{corretoresPendentes.length > 1 ? 's' : ''} de corretor{corretoresPendentes.length > 1 ? 'es' : ''} que precisa{corretoresPendentes.length > 1 ? 'm' : ''} ser {corretoresPendentes.length > 1 ? 'revisado' : 'revisado'} e aprovado antes de aparecer no sistema.
-              </p>
-              <Link
-                href="/painel/corretores"
-                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
-              >
-                <span>Revisar corretores pendentes</span>
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 via-amber-100/50 to-amber-50 p-6 shadow-lg">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-amber-500 shadow-md">
+                <svg className="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
-              </Link>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-amber-900">
+                  {corretoresPendentes.length} Corretor{corretoresPendentes.length > 1 ? 'es' : ''} Aguardando Aprovação
+                </h3>
+                <p className="mt-1 text-sm text-amber-800">
+                  Revise e aprove os novos cadastros abaixo
+                </p>
+              </div>
             </div>
+            <Link
+              href="/painel/corretores"
+              className="rounded-lg border-2 border-amber-600 bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-700"
+            >
+              Ver todos
+            </Link>
+          </div>
+
+          <div className="mt-6 space-y-4">
+            {corretoresPendentes.slice(0, 3).map(corretor => (
+              <div key={corretor.id} className="rounded-xl border-2 border-amber-200 bg-white p-5 shadow-sm">
+                <div className="flex gap-4">
+                  {corretor.foto ? (
+                    <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2 border-amber-300">
+                      <Image
+                        src={corretor.foto}
+                        alt={corretor.nome}
+                        width={64}
+                        height={64}
+                        className="h-full w-full object-cover"
+                        unoptimized
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full border-2 border-amber-300 bg-amber-100">
+                      <svg className="h-8 w-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-base font-semibold text-slate-900">{corretor.nome}</p>
+                          <span className="rounded-full bg-amber-500 px-2.5 py-0.5 text-xs font-semibold text-white">
+                            PENDENTE
+                          </span>
+                        </div>
+                        <p className="text-xs uppercase tracking-[0.3em] text-slate-500 mt-1">CRECI {corretor.creci}</p>
+                        <p className="text-sm text-slate-600 mt-2">{corretor.email}</p>
+                        <p className="text-sm text-slate-600">{corretor.telefone}</p>
+                        {corretor.areaAtuacao && (
+                          <p className="text-sm text-slate-500 mt-1">Área: {corretor.areaAtuacao}</p>
+                        )}
+                        {corretor.criadoEm && (
+                          <p className="text-xs text-slate-400 mt-2">
+                            Cadastrado em: {formatarData(corretor.criadoEm)}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleApproveCorretor(corretor.id, 'Aprovado', corretor.nome)}
+                          disabled={processingId === corretor.id}
+                          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {processingId === corretor.id ? 'Processando...' : 'Aprovar'}
+                        </button>
+                        <button
+                          onClick={() => handleApproveCorretor(corretor.id, 'Rejeitado', corretor.nome)}
+                          disabled={processingId === corretor.id}
+                          className="rounded-lg border-2 border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {processingId === corretor.id ? 'Processando...' : 'Rejeitar'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {corretoresPendentes.length > 3 && (
+              <div className="text-center pt-2">
+                <Link
+                  href="/painel/corretores"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-amber-700 hover:text-amber-900"
+                >
+                  Ver mais {corretoresPendentes.length - 3} corretor{corretoresPendentes.length - 3 > 1 ? 'es' : ''} pendente{corretoresPendentes.length - 3 > 1 ? 's' : ''}
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -307,13 +436,13 @@ export default function HomePage() {
           {/* Destaque do Empreendimento */}
           <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-6 shadow-sm">
             <p className="text-xs uppercase tracking-[0.5em] text-amber-600">Destaque do Mês</p>
-            <h2 className="mt-2 text-2xl font-bold text-slate-900">{destaque.titulo}</h2>
-            <p className="mt-3 text-sm text-slate-700">{destaque.descricao}</p>
+            <h2 className="mt-2 text-2xl font-bold text-slate-900">{destaqueData.titulo}</h2>
+            <p className="mt-3 text-sm text-slate-700">{destaqueData.descricao}</p>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <div className="rounded-xl bg-white/60 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Localização</p>
                 <ul className="mt-2 space-y-1 text-xs text-slate-700">
-                  {destaque.localizacao.map((item) => (
+                  {destaqueData.localizacao.map((item) => (
                   <li key={item}>• {item}</li>
                 ))}
               </ul>
@@ -321,7 +450,7 @@ export default function HomePage() {
               <div className="rounded-xl bg-white/60 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Características</p>
                 <ul className="mt-2 space-y-1 text-xs text-slate-700">
-                  {destaque.caracteristicas.map((item) => (
+                  {destaqueData.caracteristicas.map((item) => (
                   <li key={item}>• {item}</li>
                 ))}
               </ul>
@@ -336,7 +465,7 @@ export default function HomePage() {
             >
                 Falar com especialista
             </a>
-              <p className="text-xs text-slate-600">{destaque.contato}</p>
+              <p className="text-xs text-slate-600">{destaqueData.contato}</p>
             </div>
           </div>
         </div>

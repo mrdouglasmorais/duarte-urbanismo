@@ -90,10 +90,13 @@ export default function NegociacoesPage() {
   ]);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<"negociacoes" | "recibos">("negociacoes");
+  const [showForm, setShowForm] = useState(false);
+  const [expandedNegociacao, setExpandedNegociacao] = useState<string | null>(null);
   const [reciboLoadingId, setReciboLoadingId] = useState<string | null>(null);
   const [qrCodeParcelaId, setQrCodeParcelaId] = useState<string | null>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [pixPayload, setPixPayload] = useState<string | null>(null);
+  const [showQrModal, setShowQrModal] = useState(false);
 
   const handleUnidadeChange = (unidadeId: string) => {
     setForm(prev => {
@@ -148,6 +151,10 @@ export default function NegociacoesPage() {
     setForm({ ...initialForm });
     setPermutaItens([{ tipo: permutaTipos[0], valor: "", descricao: "" }]);
     setMensagem("Negociação registrada com sucesso.");
+    setTimeout(() => {
+      setShowForm(false);
+      setMensagem(null);
+    }, 2000);
   };
 
   const handleAddParcela = (negociacaoId: string) => {
@@ -673,8 +680,37 @@ export default function NegociacoesPage() {
 
       {activeTab === "negociacoes" ? (
         <>
-          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
+          {/* Formulário de Nova Negociação - Colapsável */}
+          <section className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowForm(!showForm)}
+              className="w-full flex items-center justify-between p-6 hover:bg-slate-50 transition"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
+                  <svg className="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+                <div className="text-left">
+                  <h2 className="text-lg font-semibold text-slate-900">Nova Negociação</h2>
+                  <p className="text-sm text-slate-500">Cadastrar novo contrato e acompanhamento</p>
+                </div>
+              </div>
+              <svg
+                className={`h-5 w-5 text-slate-400 transition-transform ${showForm ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {showForm && (
+              <div className="border-t border-slate-200 p-6">
+                <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="text-sm font-medium text-slate-700">Cliente</label>
                 <select
@@ -957,16 +993,37 @@ export default function NegociacoesPage() {
                 </div>
               )}
 
-              <div className="md:col-span-2">
-                <button
-                  type="submit"
-                  className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold uppercase tracking-[0.35em] text-white"
-                >
-                  Registrar negociação
-                </button>
-                {mensagem && <p className="mt-2 text-sm text-slate-500">{mensagem}</p>}
+                  <div className="md:col-span-2 flex gap-3">
+                    <button
+                      type="submit"
+                      className="flex-1 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold uppercase tracking-[0.35em] text-white hover:bg-slate-800 transition"
+                    >
+                      Registrar negociação
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowForm(false);
+                        setForm({ ...initialForm });
+                        setPermutaItens([{ tipo: permutaTipos[0], valor: "", descricao: "" }]);
+                      }}
+                      className="rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                  {mensagem && (
+                    <div className={`md:col-span-2 rounded-xl p-4 text-sm ${
+                      mensagem.includes('sucesso')
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-amber-50 text-amber-700 border border-amber-200'
+                    }`}>
+                      {mensagem}
+                    </div>
+                  )}
+                </form>
               </div>
-            </form>
+            )}
           </section>
 
           <section className="space-y-4">
@@ -1015,110 +1072,184 @@ export default function NegociacoesPage() {
 
                 const limiteParcelasAtingido = negociacao.parcelas.length >= 100;
 
+                const isExpanded = expandedNegociacao === negociacao.id;
+
                 return (
-                  <div key={negociacao.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Negociação #{index + 1}</p>
-                        <h2 className="text-2xl font-semibold text-slate-900">{cliente?.nome ?? "Cliente removido"}</h2>
-                        <p className="text-sm text-slate-500">{unidade ? `${unidade.nome} · ${unidade.unidade}` : "Unidade não disponível"}</p>
-                        <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-                          {negociacao.fase && <span className="rounded-full bg-slate-100 px-3 py-1">Fase: {negociacao.fase}</span>}
-                          {negociacao.numeroLote && <span className="rounded-full bg-slate-100 px-3 py-1">Lote: {negociacao.numeroLote}</span>}
-                          {negociacao.metragem && <span className="rounded-full bg-slate-100 px-3 py-1">Metragem: {negociacao.metragem} m²</span>}
-                          {negociacao.valorContrato && (
-                            <span className="rounded-full bg-slate-100 px-3 py-1">
-                              Contrato: {negociacao.valorContrato.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  <div key={negociacao.id} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    {/* Cabeçalho da Negociação */}
+                    <div className="p-6">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                              negociacao.status === "Fechado" ? "bg-emerald-100 text-emerald-700" :
+                              negociacao.status === "Em andamento" ? "bg-blue-100 text-blue-700" :
+                              negociacao.status === "Aguardando aprovação" ? "bg-amber-100 text-amber-700" :
+                              "bg-slate-100 text-slate-700"
+                            }`}>
+                              {negociacao.status ?? "Em prospecção"}
                             </span>
+                            <span className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                              {resumoItem?.parcelasPagas ?? 0}/{resumoItem?.totalParcelas ?? 0} parcelas pagas
+                            </span>
+                          </div>
+                          <h2 className="text-xl font-semibold text-slate-900 mb-1">{cliente?.nome ?? "Cliente removido"}</h2>
+                          <p className="text-sm text-slate-600 mb-3">
+                            {unidade ? `${unidade.nome}${unidade.unidade ? ` · ${unidade.unidade}` : ""}` : "Unidade não disponível"}
+                            {corretor && ` · ${corretor.nome}`}
+                          </p>
+
+                          {/* Resumo Financeiro Compacto */}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                            <div>
+                              <p className="text-xs text-slate-500">Valor Contratual</p>
+                              <p className="text-sm font-semibold text-slate-900">
+                                {contratoBase.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-slate-500">Total Pago</p>
+                              <p className="text-sm font-semibold text-emerald-700">
+                                {totalPago.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-slate-500">Saldo Aberto</p>
+                              <p className="text-sm font-semibold text-amber-700">
+                                {saldoAberto.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-slate-500">Próximo Vencimento</p>
+                              <p className="text-sm font-semibold text-slate-900">
+                                {resumoItem?.proximaParcela ?? "—"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => setExpandedNegociacao(isExpanded ? null : negociacao.id)}
+                            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+                          >
+                            {isExpanded ? "Ocultar" : "Ver detalhes"}
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm("Deseja remover esta negociação?")) {
+                                deleteNegociacao(negociacao.id);
+                              }
+                            }}
+                            className="rounded-lg border border-rose-300 px-4 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50 transition"
+                          >
+                            Remover
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Detalhes Expandidos */}
+                    {isExpanded && (
+                      <div className="border-t border-slate-200 bg-slate-50/50 p-6 space-y-6">
+
+                        {/* Informações Detalhadas */}
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <h3 className="text-sm font-semibold text-slate-900 mb-3">Informações do Contrato</h3>
+                            <div className="space-y-2 text-sm">
+                              {negociacao.fase && (
+                                <div className="flex justify-between">
+                                  <span className="text-slate-500">Fase:</span>
+                                  <span className="font-medium">{negociacao.fase}</span>
+                                </div>
+                              )}
+                              {negociacao.numeroLote && (
+                                <div className="flex justify-between">
+                                  <span className="text-slate-500">Lote:</span>
+                                  <span className="font-medium">{negociacao.numeroLote}</span>
+                                </div>
+                              )}
+                              {negociacao.metragem && (
+                                <div className="flex justify-between">
+                                  <span className="text-slate-500">Metragem:</span>
+                                  <span className="font-medium">{negociacao.metragem} m²</span>
+                                </div>
+                              )}
+                              {corretor && (
+                                <div className="flex justify-between">
+                                  <span className="text-slate-500">Corretor:</span>
+                                  <span className="font-medium">{corretor.nome} · CRECI {corretor.creci}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {permutas.length > 0 && (
+                            <div>
+                              <h3 className="text-sm font-semibold text-slate-900 mb-3">Permutas</h3>
+                              <div className="space-y-2">
+                                {permutas.map((permuta, idx) => (
+                                  <div key={idx} className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm">
+                                    <p className="font-semibold text-amber-900">{permuta.tipo}</p>
+                                    <p className="text-amber-700">{permuta.descricao}</p>
+                                    <p className="text-xs text-amber-600 mt-1">
+                                      {permuta.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           )}
                         </div>
-                        {corretor && (
-                          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                            Corretor: {corretor.nome} · CRECI {corretor.creci}
-                          </p>
+
+                        {negociacao.descricao && (
+                          <div>
+                            <h3 className="text-sm font-semibold text-slate-900 mb-2">Termos Contratuais</h3>
+                            <p className="text-sm text-slate-600 whitespace-pre-line bg-white p-4 rounded-lg border border-slate-200">
+                              {negociacao.descricao}
+                            </p>
+                          </div>
                         )}
-                      </div>
-                      <button onClick={() => deleteNegociacao(negociacao.id)} className="text-sm text-rose-600 underline">
-                        Remover negociação
-                      </button>
-                    </div>
 
-                    <p className="mt-4 text-sm text-slate-600 whitespace-pre-line">{negociacao.descricao}</p>
-
-                    {permutas.length > 0 && (
-                      <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                        <p className="text-xs uppercase tracking-[0.35em] text-amber-600">Permutas</p>
-                        <div className="mt-2 space-y-2">
-                          {permutas.map((permuta, idx) => (
-                            <div key={idx} className="rounded-lg border border-amber-100 bg-white/70 p-3 text-amber-900">
-                              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-700">
-                                Bem {idx + 1}: {permuta.tipo}
-                              </p>
-                              <p>Valor: {permuta.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
-                              <p>Descrição: {permuta.descricao}</p>
+                        {/* Simulação Financeira */}
+                        {(totalPermuta > 0 || qtdPrevista > 0) && (
+                          <div className="rounded-xl border border-slate-200 bg-white p-4">
+                            <h3 className="text-sm font-semibold text-slate-900 mb-3">Simulação Financeira</h3>
+                            <div className="grid md:grid-cols-3 gap-4 text-sm">
+                              {totalPermuta > 0 && (
+                                <div>
+                                  <p className="text-xs text-slate-500">Total em Permutas</p>
+                                  <p className="text-base font-semibold text-slate-900">
+                                    {totalPermuta.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                  </p>
+                                </div>
+                              )}
+                              {qtdPrevista > 0 && (
+                                <div>
+                                  <p className="text-xs text-slate-500">Parcelas Previstas</p>
+                                  <p className="text-base font-semibold text-slate-900">{qtdPrevista}</p>
+                                </div>
+                              )}
+                              {valorParcelaSimulada > 0 && (
+                                <div>
+                                  <p className="text-xs text-slate-500">Valor da Parcela</p>
+                                  <p className="text-base font-semibold text-slate-900">
+                                    {valorParcelaSimulada.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                  </p>
+                                </div>
+                              )}
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                          </div>
+                        )}
 
-                    <div className="mt-4 grid gap-4 sm:grid-cols-6">
-                      <ResumoCard label="Status" value={negociacao.status ?? "Em prospecção"} />
-                      <ResumoCard
-                        label="Valor contratual"
-                        value={contratoBase.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                      />
-                      <ResumoCard label="Parcelas pagas" value={`${resumoItem?.parcelasPagas ?? 0}/${resumoItem?.totalParcelas ?? 0}`} />
-                      <ResumoCard
-                        label="Saldo em aberto"
-                        value={saldoAberto.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                      />
-                      <ResumoCard label="Próximo vencimento" value={resumoItem?.proximaParcela ?? "—"} />
-                      <ResumoCard label="Corretor" value={corretor?.nome ?? "Não informado"} />
-                    </div>
-                    <div className="mt-4 rounded-3xl border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-700">
-                      <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Simulações financeiras</p>
-                      <div className="mt-3 grid gap-3 md:grid-cols-5">
+                        {/* Seção de Parcelas */}
                         <div>
-                          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Total em permutas</p>
-                          <p className="text-lg font-semibold text-slate-900">
-                            {totalPermuta.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Saldo parcelado</p>
-                          <p className="text-lg font-semibold text-slate-900">
-                            {saldoParcelado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Saldo em aberto</p>
-                          <p className="text-lg font-semibold text-slate-900">
-                            {saldoAberto.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Qtd. parcelas (prevista)</p>
-                          <p className="text-lg font-semibold text-slate-900">{qtdPrevista || "—"}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Parcela simulada</p>
-                          <p className="text-lg font-semibold text-slate-900">
-                            {valorParcelaSimulada.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                          </p>
-                        </div>
-                      </div>
-                      {proximosPagamentos.length > 0 && (
-                        <p className="mt-3 text-xs text-slate-500">
-                          Próximos pagamentos: {proximosPagamentos
-                            .map(parcela => `${formatarData(parcela.vencimento)} (${parcela.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})`)
-                            .join(" · ")}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="mt-6">
-                      <h3 className="text-lg font-semibold text-slate-900">Parcelas</h3>
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-slate-900">Parcelas</h3>
+                            <span className="text-xs text-slate-500">
+                              {negociacao.parcelas.length} parcela{negociacao.parcelas.length !== 1 ? 's' : ''} cadastrada{negociacao.parcelas.length !== 1 ? 's' : ''}
+                            </span>
+                          </div>
                       <div className="mt-3 overflow-x-auto">
                         <table className="w-full text-left text-sm">
                           <thead>
@@ -1228,20 +1359,16 @@ export default function NegociacoesPage() {
                                             errorCorrectionLevel: 'M'
                                           });
                                           setQrCodeDataUrl(dataUrl);
+                                          setShowQrModal(true);
                                         } catch (error) {
                                           console.error('Erro ao gerar QR code PIX:', error);
                                           const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-                                          console.error('Detalhes do erro:', {
-                                            error,
-                                            message: errorMessage,
-                                            stack: error instanceof Error ? error.stack : undefined
-                                          });
-                                          setMensagem(`Erro ao gerar QR code PIX: ${errorMessage}. Verifique o console para mais detalhes.`);
+                                          setMensagem(`Erro ao gerar QR code PIX: ${errorMessage}.`);
                                         }
                                       }}
-                                      className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-700 hover:bg-emerald-100"
+                                      className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition"
                                     >
-                                      Ver QR Code
+                                      QR Code
                                     </button>
                                   )}
                                 </td>
@@ -1257,83 +1384,9 @@ export default function NegociacoesPage() {
                             ))}
                             {negociacao.parcelas.length === 0 && (
                               <tr>
-                                <td colSpan={7} className="py-4 text-center text-slate-500">
-                                  Nenhuma parcela registrada.
-                                </td>
-                              </tr>
-                            )}
-                            {/* Linha expandida para QR Code PIX - apenas para esta negociação */}
-                            {qrCodeParcelaId && negociacao.parcelas.some(p => p.id === qrCodeParcelaId) && (
-                              <tr>
-                                <td colSpan={7} className="py-6">
-                                  <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/50 p-6">
-                                    <div className="flex items-start justify-between gap-6">
-                                      <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-4">
-                                          <h4 className="text-lg font-semibold text-emerald-900">QR Code PIX para Pagamento</h4>
-                                          <button
-                                            onClick={() => {
-                                              setQrCodeParcelaId(null);
-                                              setQrCodeDataUrl(null);
-                                              setPixPayload(null);
-                                            }}
-                                            className="text-emerald-700 hover:text-emerald-900"
-                                            title="Fechar QR Code"
-                                          >
-                                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                          </button>
-                                        </div>
-                                        {qrCodeDataUrl && (
-                                          <div className="flex flex-col items-start gap-4 md:flex-row md:items-center">
-                                            <div className="flex-shrink-0 rounded-xl border-4 border-white bg-white p-4 shadow-lg">
-                                              <img src={qrCodeDataUrl} alt="QR Code PIX" className="h-64 w-64" />
-                                            </div>
-                                            <div className="flex-1 space-y-3">
-                                              <div>
-                                                <p className="text-sm font-semibold text-emerald-900">Chave PIX:</p>
-                                                <p className="text-sm text-emerald-700 font-mono break-all">{DEFAULT_PIX_KEY}</p>
-                                              </div>
-                                              <div>
-                                                <p className="text-sm font-semibold text-emerald-900">Valor:</p>
-                                                <p className="text-lg font-bold text-emerald-900">
-                                                  {negociacao.parcelas.find(p => p.id === qrCodeParcelaId)?.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                                                </p>
-                                              </div>
-                                              <div>
-                                                <p className="text-sm font-semibold text-emerald-900">Vencimento:</p>
-                                                <p className="text-sm text-emerald-700">
-                                                  {formatarData(negociacao.parcelas.find(p => p.id === qrCodeParcelaId)?.vencimento || '')}
-                                                </p>
-                                              </div>
-                                              {pixPayload && (
-                                                <div>
-                                                  <p className="text-xs text-emerald-600 mb-2">Código PIX (clique para copiar):</p>
-                                                  <button
-                                                    onClick={() => {
-                                                      navigator.clipboard.writeText(pixPayload);
-                                                      setMensagem('Código PIX copiado para a área de transferência!');
-                                                      setTimeout(() => setMensagem(null), 3000);
-                                                    }}
-                                                    className="w-full rounded-lg border border-emerald-300 bg-white px-4 py-2 text-xs font-mono text-emerald-900 hover:bg-emerald-50 break-all text-left transition"
-                                                    title="Clique para copiar"
-                                                  >
-                                                    {pixPayload}
-                                                  </button>
-                                                </div>
-                                              )}
-                                              <div className="pt-2">
-                                                <p className="text-xs text-emerald-700">
-                                                  📱 Escaneie o QR Code com o app do seu banco para pagar via PIX
-                                                </p>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
+                                <td colSpan={7} className="py-8 text-center text-slate-500">
+                                  <p className="text-sm">Nenhuma parcela registrada.</p>
+                                  <p className="text-xs text-slate-400 mt-1">Use o formulário abaixo para adicionar parcelas.</p>
                                 </td>
                               </tr>
                             )}
@@ -1341,79 +1394,191 @@ export default function NegociacoesPage() {
                         </table>
                       </div>
 
-                      <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          placeholder="R$ 0,00"
-                          value={parcelasForms[negociacao.id]?.valor ?? ""}
-                          onChange={event => {
-                            const formatted = formatCurrencyInputValue(event.target.value);
-                            setParcelasForms(prev => {
-                              const atual = prev[negociacao.id] ?? { valor: "", vencimento: "" };
-                              return {
+                      {/* Formulário de Nova Parcela */}
+                      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+                        <h4 className="text-sm font-semibold text-slate-900 mb-3">Adicionar Nova Parcela</h4>
+                        <div className="grid gap-3 sm:grid-cols-3">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="R$ 0,00"
+                            value={parcelasForms[negociacao.id]?.valor ?? ""}
+                            onChange={event => {
+                              const formatted = formatCurrencyInputValue(event.target.value);
+                              setParcelasForms(prev => {
+                                const atual = prev[negociacao.id] ?? { valor: "", vencimento: "" };
+                                return {
+                                  ...prev,
+                                  [negociacao.id]: { ...atual, valor: formatted }
+                                };
+                              });
+                            }}
+                            className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm"
+                            disabled={limiteParcelasAtingido}
+                          />
+                          <input
+                            type="date"
+                            value={parcelasForms[negociacao.id]?.vencimento ?? ""}
+                            onChange={event =>
+                              setParcelasForms(prev => ({
                                 ...prev,
-                                [negociacao.id]: { ...atual, valor: formatted }
-                              };
-                            });
-                          }}
-                          className="rounded-xl border border-slate-200 px-4 py-2.5"
-                          disabled={limiteParcelasAtingido}
-                        />
-                        <input
-                          type="date"
-                          value={parcelasForms[negociacao.id]?.vencimento ?? ""}
-                          onChange={event =>
-                            setParcelasForms(prev => ({
-                              ...prev,
-                              [negociacao.id]: { ...prev[negociacao.id], vencimento: event.target.value }
-                            }))
-                          }
-                          className="rounded-xl border border-slate-200 px-4 py-2.5"
-                          disabled={limiteParcelasAtingido}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleAddParcela(negociacao.id)}
-                          className="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.35em] text-white disabled:cursor-not-allowed disabled:bg-slate-400"
-                          disabled={limiteParcelasAtingido}
-                        >
-                          {limiteParcelasAtingido ? "Limite atingido" : "Adicionar parcela"}
-                        </button>
+                                [negociacao.id]: { ...prev[negociacao.id], vencimento: event.target.value }
+                              }))
+                            }
+                            className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm"
+                            disabled={limiteParcelasAtingido}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleAddParcela(negociacao.id)}
+                            className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800 transition disabled:cursor-not-allowed disabled:bg-slate-400"
+                            disabled={limiteParcelasAtingido}
+                          >
+                            {limiteParcelasAtingido ? "Limite atingido" : "Adicionar"}
+                          </button>
+                        </div>
+                        {limiteParcelasAtingido && (
+                          <p className="mt-2 text-xs text-amber-600">Máximo de 100 parcelas por negociação atingido.</p>
+                        )}
                       </div>
-                      <p className="mt-2 text-xs text-slate-500">Máximo de 100 parcelas por negociação.</p>
                     </div>
+                      </div>
+                    )}
                   </div>
                 );
               })
             )}
           </section>
+
+          {/* Modal QR Code PIX */}
+          {showQrModal && qrCodeDataUrl && qrCodeParcelaId && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => {
+              setShowQrModal(false);
+              setQrCodeParcelaId(null);
+              setQrCodeDataUrl(null);
+              setPixPayload(null);
+            }}>
+              <div className="bg-white rounded-2xl p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-slate-900">QR Code PIX</h3>
+                  <button
+                    onClick={() => {
+                      setShowQrModal(false);
+                      setQrCodeParcelaId(null);
+                      setQrCodeDataUrl(null);
+                      setPixPayload(null);
+                    }}
+                    className="text-slate-400 hover:text-slate-600"
+                  >
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="flex flex-col items-center gap-4">
+                  <div className="rounded-xl border-4 border-white bg-white p-4 shadow-lg">
+                    <img src={qrCodeDataUrl} alt="QR Code PIX" className="h-64 w-64" />
+                  </div>
+                  <div className="w-full space-y-3 text-sm">
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Chave PIX:</p>
+                      <p className="font-mono text-slate-900 break-all">{DEFAULT_PIX_KEY}</p>
+                    </div>
+                    {negociacoes.find(n => n.parcelas.some(p => p.id === qrCodeParcelaId)) && (
+                      <>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Valor:</p>
+                          <p className="text-lg font-bold text-slate-900">
+                            {negociacoes
+                              .flatMap(n => n.parcelas)
+                              .find(p => p.id === qrCodeParcelaId)
+                              ?.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Vencimento:</p>
+                          <p className="text-slate-900">
+                            {formatarData(
+                              negociacoes
+                                .flatMap(n => n.parcelas)
+                                .find(p => p.id === qrCodeParcelaId)
+                                ?.vencimento || ''
+                            )}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                    {pixPayload && (
+                      <div>
+                        <p className="text-xs text-slate-500 mb-2">Código PIX (clique para copiar):</p>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(pixPayload);
+                            setMensagem('Código PIX copiado!');
+                            setTimeout(() => setMensagem(null), 3000);
+                          }}
+                          className="w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-xs font-mono text-slate-900 hover:bg-slate-100 break-all text-left transition"
+                        >
+                          {pixPayload}
+                        </button>
+                      </div>
+                    )}
+                    <p className="text-xs text-slate-500 text-center pt-2">
+                      📱 Escaneie com o app do seu banco para pagar
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       ) : (
-        <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          {recibosPainel.itens.length === 0 ? (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-6 text-sm text-slate-500">
-              Nenhuma negociação fechada disponível para emissão de recibos.
-            </div>
-          ) : (
-            <>
-              <div className="grid gap-4 sm:grid-cols-4">
-                <ResumoCard label="Negociações fechadas" value={`${recibosPainel.itens.length}`} />
-                <ResumoCard
-                  label="Recebido até o momento"
-                  value={recibosPainel.totais.totalPago.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                />
-                <ResumoCard
-                  label="Saldo pendente"
-                  value={recibosPainel.totais.totalPendente.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                />
-                <ResumoCard
-                  label="Parcelas quitadas"
-                  value={`${recibosPainel.totais.parcelasPagas}/${recibosPainel.totais.totalParcelas}`}
-                />
+        <>
+          {/* Resumo Geral de Recibos */}
+          {recibosPainel.itens.length > 0 && (
+            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">Resumo Geral</h2>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                  <p className="text-xs uppercase tracking-[0.3em] text-slate-500 mb-1">Negociações Fechadas</p>
+                  <p className="text-2xl font-bold text-slate-900">{recibosPainel.itens.length}</p>
+                </div>
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+                  <p className="text-xs uppercase tracking-[0.3em] text-emerald-700 mb-1">Total Recebido</p>
+                  <p className="text-2xl font-bold text-emerald-900">
+                    {recibosPainel.totais.totalPago.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+                  <p className="text-xs uppercase tracking-[0.3em] text-amber-700 mb-1">Saldo Pendente</p>
+                  <p className="text-2xl font-bold text-amber-900">
+                    {recibosPainel.totais.totalPendente.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
+                  <p className="text-xs uppercase tracking-[0.3em] text-blue-700 mb-1">Parcelas Quitadas</p>
+                  <p className="text-2xl font-bold text-blue-900">
+                    {recibosPainel.totais.parcelasPagas}/{recibosPainel.totais.totalParcelas}
+                  </p>
+                </div>
               </div>
+            </section>
+          )}
 
-              {recibosPainel.itens.map((item, index) => {
+          {/* Lista de Negociações para Recibos */}
+          <section className="space-y-4">
+            {recibosPainel.itens.length === 0 ? (
+              <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/50 p-12 text-center">
+                <svg className="mx-auto h-12 w-12 text-slate-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p className="text-lg font-semibold text-slate-600 mb-2">Nenhuma negociação fechada</p>
+                <p className="text-sm text-slate-500">
+                  As negociações fechadas aparecerão aqui para emissão de recibos.
+                </p>
+              </div>
+            ) : (
+              recibosPainel.itens.map((item, index) => {
                 const { negociacao, resumoItem, totalPago, totalPendente, proximaParcela } = item;
                 const cliente = clientes.find(clienteItem => clienteItem.id === negociacao.clienteId);
                 const unidade = empreendimentos.find(unidadeItem => unidadeItem.id === negociacao.unidadeId);
@@ -1424,156 +1589,225 @@ export default function NegociacoesPage() {
                   negociacao.valorContrato ??
                   resumoItem?.totalParcelado ??
                   negociacao.parcelas.reduce((sum, parcela) => sum + parcela.valor, 0);
+                const isExpanded = expandedNegociacao === negociacao.id;
+                const parcelasComRecibo = negociacao.parcelas.filter(p => p.reciboShareId).length;
+                const parcelasSemRecibo = negociacao.parcelas.filter(p => !p.reciboShareId).length;
 
                 return (
-                  <div key={negociacao.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Recibo #{index + 1}</p>
-                        <h2 className="text-2xl font-semibold text-slate-900">{cliente?.nome ?? "Cliente removido"}</h2>
-                        <p className="text-sm text-slate-500">
-                          {unidade
-                            ? `${unidade.nome}${unidade.unidade ? ` · ${unidade.unidade}` : ""}`
-                            : "Unidade não disponível"}
-                        </p>
+                  <div key={negociacao.id} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    {/* Cabeçalho Compacto */}
+                    <div className="p-6">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                              Fechado
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              {parcelasComRecibo} recibo{parcelasComRecibo !== 1 ? 's' : ''} gerado{parcelasComRecibo !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          <h2 className="text-xl font-semibold text-slate-900 mb-1">
+                            {cliente?.nome ?? "Cliente removido"}
+                          </h2>
+                          <p className="text-sm text-slate-600 mb-3">
+                            {unidade
+                              ? `${unidade.nome}${unidade.unidade ? ` · ${unidade.unidade}` : ""}`
+                              : "Unidade não disponível"}
+                            {corretor && ` · ${corretor.nome}`}
+                          </p>
+
+                          {/* Resumo Financeiro Compacto */}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                            <div>
+                              <p className="text-xs text-slate-500">Valor Contratual</p>
+                              <p className="text-sm font-semibold text-slate-900">
+                                {contratoBase.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-slate-500">Total Pago</p>
+                              <p className="text-sm font-semibold text-emerald-700">
+                                {totalPago.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-slate-500">Saldo Pendente</p>
+                              <p className="text-sm font-semibold text-amber-700">
+                                {totalPendente.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-slate-500">Parcelas</p>
+                              <p className="text-sm font-semibold text-slate-900">
+                                {item.parcelasPagas}/{item.totalParcelas} pagas
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setExpandedNegociacao(isExpanded ? null : negociacao.id)}
+                          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+                        >
+                          {isExpanded ? "Ocultar" : "Ver parcelas"}
+                        </button>
                       </div>
-                      <div className="text-right">
-                        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Status</p>
-                        <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                          {negociacao.status ?? "Fechado"}
-                        </span>
-                      </div>
                     </div>
 
-                    <div className="mt-4 grid gap-4 sm:grid-cols-4">
-                      <ResumoCard
-                        label="Total pago"
-                        value={totalPago.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                      />
-                      <ResumoCard
-                        label="Saldo pendente"
-                        value={totalPendente.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                      />
-                      <ResumoCard
-                        label="Parcelas quitadas"
-                        value={`${item.parcelasPagas}/${item.totalParcelas}`}
-                      />
-                      <ResumoCard
-                        label="Pagamento atual"
-                        value={
-                          proximaParcela
-                            ? proximaParcela.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-                            : "Quitado"
-                        }
-                      />
-                    </div>
+                    {/* Detalhes Expandidos */}
+                    {isExpanded && (
+                      <div className="border-t border-slate-200 bg-slate-50/50 p-6 space-y-6">
+                        {/* Informações Adicionais */}
+                        {proximaParcela && (
+                          <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-xs text-blue-600 mb-1">Próximo Vencimento</p>
+                                <p className="text-sm font-semibold text-blue-900">
+                                  {formatarData(proximaParcela.vencimento)}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs text-blue-600 mb-1">Valor</p>
+                                <p className="text-sm font-semibold text-blue-900">
+                                  {proximaParcela.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
-                    <div className="mt-3 rounded-3xl border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-600">
-                      <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Resumo financeiro</p>
-                      <p className="mt-2">
-                        Contrato base: {contratoBase.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} · Já
-                        recebido: {totalPago.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} · Restante:
-                        {" "}
-                        {totalPendente.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                        {proximaParcela
-                          ? ` · Próximo vencimento em ${formatarData(proximaParcela.vencimento)}`
-                          : " · Todas as parcelas foram quitadas."}
-                      </p>
-                      {corretor && (
-                        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                          Corretor responsável: {corretor.nome} · CRECI {corretor.creci}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="mt-6 overflow-x-auto">
-                      <table className="w-full text-left text-sm">
-                        <thead>
-                          <tr className="text-xs uppercase tracking-[0.35em] text-slate-500">
-                            <th className="py-2">Número</th>
-                            <th>Valor</th>
-                            <th>Vencimento</th>
-                            <th>Status</th>
-                            <th>Recibo</th>
-                            <th>Ações</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {negociacao.parcelas.map((parcela, idx) => (
-                            <tr key={parcela.id} className="border-t border-slate-100">
-                              <td className="py-2 text-slate-600">{idx + 1}</td>
-                              <td className="py-2">
-                                {parcela.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                              </td>
-                              <td className="py-2">{formatarData(parcela.vencimento)}</td>
-                              <td className="py-2">
-                                <span
-                                  className={`rounded-full px-3 py-1 text-xs font-semibold ${parcela.status === "Paga"
-                                    ? "bg-emerald-100 text-emerald-700"
-                                    : "bg-slate-100 text-slate-700"
-                                    }`}
-                                >
-                                  {parcela.status}
+                        {/* Tabela de Parcelas */}
+                        <div>
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-slate-900">Parcelas e Recibos</h3>
+                            <div className="flex gap-2 text-xs text-slate-500">
+                              <span className="flex items-center gap-1">
+                                <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                                {parcelasComRecibo} com recibo
+                              </span>
+                              {parcelasSemRecibo > 0 && (
+                                <span className="flex items-center gap-1">
+                                  <span className="h-2 w-2 rounded-full bg-slate-300"></span>
+                                  {parcelasSemRecibo} sem recibo
                                 </span>
-                              </td>
-                              <td className="py-2">
-                                {parcela.reciboShareId ? (
-                                  <div className="flex flex-col gap-1">
-                                    <Link
-                                      href={`/recibos/share/${parcela.reciboShareId}`}
-                                      target="_blank"
-                                      className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-700 hover:bg-emerald-100"
-                                    >
-                                      Ver recibo
-                                    </Link>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleCopyShareLink(parcela.reciboShareId, parcela.reciboShareUrl)}
-                                      className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-slate-500 underline"
-                                    >
-                                      Copiar link
-                                    </button>
-                                    <p className="text-[0.6rem] uppercase tracking-[0.35em] text-slate-400">
-                                      {parcela.reciboNumero ?? "Recibo emitido"}
-                                    </p>
-                                  </div>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleGerarReciboParcela(negociacao, parcela, idx)}
-                                    className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed"
-                                    disabled={reciboLoadingId === parcela.id}
-                                  >
-                                    {reciboLoadingId === parcela.id ? "Gerando..." : "Gerar recibo"}
-                                  </button>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                            <table className="w-full text-left text-sm">
+                              <thead className="bg-slate-50">
+                                <tr>
+                                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">#</th>
+                                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">Valor</th>
+                                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">Vencimento</th>
+                                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">Status</th>
+                                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">Recibo</th>
+                                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">Ações</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100">
+                                {negociacao.parcelas.map((parcela, idx) => (
+                                  <tr key={parcela.id} className="hover:bg-slate-50/50 transition">
+                                    <td className="px-4 py-3 text-slate-600 font-medium">{idx + 1}</td>
+                                    <td className="px-4 py-3 font-semibold text-slate-900">
+                                      {parcela.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                    </td>
+                                    <td className="px-4 py-3 text-slate-600">{formatarData(parcela.vencimento)}</td>
+                                    <td className="px-4 py-3">
+                                      <span
+                                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                                          parcela.status === "Paga"
+                                            ? "bg-emerald-100 text-emerald-700"
+                                            : "bg-slate-100 text-slate-700"
+                                        }`}
+                                      >
+                                        {parcela.status}
+                                      </span>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                      {parcela.reciboShareId ? (
+                                        <div className="flex flex-col gap-1.5">
+                                          <Link
+                                            href={`/recibos/share/${parcela.reciboShareId}`}
+                                            target="_blank"
+                                            className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition"
+                                          >
+                                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            Ver Recibo
+                                          </Link>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleCopyShareLink(parcela.reciboShareId, parcela.reciboShareUrl)}
+                                            className="text-xs text-slate-500 hover:text-slate-700 underline"
+                                          >
+                                            Copiar link
+                                          </button>
+                                          {parcela.reciboNumero && (
+                                            <p className="text-[0.65rem] text-slate-400">
+                                              {parcela.reciboNumero}
+                                            </p>
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleGerarReciboParcela(negociacao, parcela, idx)}
+                                          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition disabled:cursor-not-allowed disabled:opacity-50"
+                                          disabled={reciboLoadingId === parcela.id}
+                                        >
+                                          {reciboLoadingId === parcela.id ? (
+                                            <span className="flex items-center gap-1.5">
+                                              <svg className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                              </svg>
+                                              Gerando...
+                                            </span>
+                                          ) : (
+                                            <span className="flex items-center gap-1.5">
+                                              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                              </svg>
+                                              Gerar Recibo
+                                            </span>
+                                          )}
+                                        </button>
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                      <button
+                                        onClick={() => toggleStatus(negociacao.id, parcela.id, parcela.status)}
+                                        className="text-xs font-medium text-slate-600 hover:text-slate-900 underline transition"
+                                      >
+                                        {parcela.status === "Paga" ? "Marcar pendente" : "Marcar paga"}
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                                {negociacao.parcelas.length === 0 && (
+                                  <tr>
+                                    <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                                      <p className="text-sm">Nenhuma parcela registrada.</p>
+                                    </td>
+                                  </tr>
                                 )}
-                              </td>
-                              <td className="py-2">
-                                <button
-                                  onClick={() => toggleStatus(negociacao.id, parcela.id, parcela.status)}
-                                  className="text-xs text-slate-600 underline"
-                                >
-                                  Marcar como {parcela.status === "Paga" ? "pendente" : "paga"}
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                          {negociacao.parcelas.length === 0 && (
-                            <tr>
-                              <td colSpan={6} className="py-4 text-center text-slate-500">
-                                Nenhuma parcela registrada.
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
-              })}
-            </>
-          )}
-        </section>
+              })
+            )}
+          </section>
+        </>
       )}
     </div>
   );
