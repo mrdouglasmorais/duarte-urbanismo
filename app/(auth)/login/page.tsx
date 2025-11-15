@@ -116,7 +116,7 @@ function LoginPageContent() {
         <div className="mb-8 text-center">
           <Link href="/" className="inline-block mb-6">
             <Image
-              src="/logo_duarte_sem_fundo.png"
+              src="/logo.png"
               alt="Duarte Urbanismo"
               width={180}
               height={56}

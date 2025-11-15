@@ -6,7 +6,7 @@ export default function SEO() {
     description:
       'Duarte Urbanismo - Empreendimento Pôr do Sol Eco Village. Condomínio residencial sustentável em Tijucas/SC.',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://duarteurbanismo.com.br',
-    logo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://duarteurbanismo.com.br'}/logo_duarte_sem_fundo.png`,
+    logo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://duarteurbanismo.com.br'}/logo.png`,
     address: {
       '@type': 'PostalAddress',
       streetAddress: 'Rua José Antonio da Silva, 152 · Sala 03, Escritório 81, Centro',

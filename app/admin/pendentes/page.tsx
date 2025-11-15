@@ -105,7 +105,7 @@ export default function AdminPendentesPage() {
           <div className="flex items-center justify-between">
             <Link href="/painel" className="inline-block">
               <Image
-                src="/logo_duarte_sem_fundo.png"
+                src="/logo.png"
                 alt="Duarte Urbanismo"
                 width={180}
                 height={56}

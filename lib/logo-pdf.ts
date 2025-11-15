@@ -5,7 +5,7 @@ import path from 'path';
 export function drawLogoPDF(pdf: jsPDF, centerX: number, startY: number) {
   try {
     // Tentar carregar logo PNG
-    const logoPath = path.join(process.cwd(), 'public', 'logo_duarte_sem_fundo.png');
+    const logoPath = path.join(process.cwd(), 'public', 'logo.png');
     if (fs.existsSync(logoPath)) {
       try {
         const logoData = fs.readFileSync(logoPath);

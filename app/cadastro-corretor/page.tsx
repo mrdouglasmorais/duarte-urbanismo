@@ -254,7 +254,7 @@ export default function CadastroCorretorPage() {
         <div className="mx-auto max-w-7xl px-4 py-6">
           <Link href="/" className="inline-block">
             <Image
-              src="/logo_duarte_sem_fundo.png"
+              src="/logo.png"
               alt="Duarte Urbanismo"
               width={180}
               height={56}

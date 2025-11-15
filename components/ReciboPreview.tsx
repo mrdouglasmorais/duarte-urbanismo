@@ -83,7 +83,7 @@ export default function ReciboPreview({ data, qrCodeData, onPrint, onGeneratePDF
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-center">
             <Image
-              src="/logo_duarte_sem_fundo.png"
+              src="/logo.png"
               alt="Duarte Urbanismo"
               width={240}
               height={80}
