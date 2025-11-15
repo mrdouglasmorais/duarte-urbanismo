@@ -92,4 +92,7 @@ export interface Corretor {
   observacoes?: string;
   status?: 'Pendente' | 'Aprovado' | 'Rejeitado';
   criadoEm?: string;
+  aprovadoEm?: string;
+  aprovadoPor?: string;
+  aprovadoPorNome?: string;
 }
