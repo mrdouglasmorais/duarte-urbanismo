@@ -126,7 +126,7 @@ export default function AreaClientePage() {
           <div className="flex h-20 items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               <Image
-                src="/logo_duarte_sem_fundo.png"
+                src="/logo-white.png"
                 alt="Duarte Urbanismo"
                 width={140}
                 height={45}
@@ -341,35 +341,6 @@ export default function AreaClientePage() {
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Link para Recibos Públicos */}
-      <section className="relative py-16 px-4">
-        <div className="relative z-10 mx-auto max-w-4xl text-center">
-          <motion.div
-            className="rounded-3xl border border-white/20 bg-white/10 p-8 backdrop-blur md:p-12"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h3
-              className="mb-4 text-2xl font-bold text-white md:text-3xl"
-              style={{ fontFamily: 'var(--font-playfair), serif' }}
-            >
-              Precisa Validar um Recibo?
-            </h3>
-            <p className="mb-6 text-white/80">
-              Acesse nossa ferramenta pública de validação de recibos usando o número do recibo ou QR Code.
-            </p>
-            <Link
-              href="/recibos"
-              className="inline-block rounded-full bg-white px-8 py-4 text-base font-semibold uppercase tracking-[0.2em] text-emerald-900 transition hover:scale-105 hover:shadow-xl"
-            >
-              Validar Recibo
-            </Link>
-          </motion.div>
         </div>
       </section>
 

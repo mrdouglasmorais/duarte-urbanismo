@@ -9,67 +9,20 @@ import { toastSuccess, toastError, toastWarning } from '@/lib/toast';
 import { Footer } from '@/components/Footer';
 import type { Corretor } from '@/types/sgci';
 
-const dadosEmpreendimento = {
-  titulo: 'Pôr do Sol Eco Village',
-  descricao:
-    'Seu refúgio de natureza e lazer em Tijucas/SC. Construa sua chácara em um condomínio exclusivo que une tranquilidade, segurança e infraestrutura completa!',
-  localizacao: ['Apenas 4 km do Centro de Tijucas (Bairro Itinga).', 'Fácil acesso à BR-101 e praias.'],
-  caracteristicas: ['Lotes amplos, a partir de 1.000 m² (até 3.500 m²).', '32 áreas de lazer com club house completo.'],
-  investimento: [
-    'Valor base do m²: R$ 350,00',
-    'Entrada mínima: 10%',
-    'Saldo em até 120 parcelas',
-    'Correção: IPCA + 0,85% a.m. direto com a incorporadora'
-  ],
-  contato: '+55 48 9669-6009'
-};
-
-const estatisticas = [
-  { valor: '1.000', unidade: 'M²', descricao: 'Lotes a partir de' },
-  { valor: '3.500', unidade: 'M²', descricao: 'Lotes até' },
-  { valor: '32', unidade: '', descricao: 'Áreas de lazer' },
-  { valor: '100%', unidade: '', descricao: 'Sustentável' }
-];
-
-// Corretores serão carregados do MongoDB
-
-const galleryImages = [
-  'images/page_2_img_2.jpg',
-  'images/page_2_img_3.jpg',
-  'images/page_2_img_4.jpg',
-  'images/page_3_img_2.jpg',
-  'images/page_3_img_3.jpg',
-  'images/page_3_img_4.jpg',
-  'images/page_3_img_5.jpg',
-  'images/page_3_img_6.jpg',
-  'images/page_3_img_7.jpg',
-  'images/page_3_img_8.jpg',
-  'images/page_4_img_2.jpg',
-  'images/page_4_img_3.jpg',
-  'images/page_4_img_4.jpg',
-  'images/page_4_img_5.jpg',
-  'images/page_4_img_6.jpg',
-  'images/page_5_img_2.jpg',
-  'images/page_5_img_3.jpg',
-  'images/page_5_img_4.jpg',
-  'images/page_5_img_5.jpg',
-  'images/page_5_img_6.jpg',
-  'images/page_5_img_7.jpg',
-  'images/page_6_img_2.jpg',
-  'images/page_6_img_3.jpg',
-  'images/page_6_img_4.jpg',
-  'images/page_6_img_5.jpg',
-  'images/page_7_img_2.jpg',
-  'images/page_9_img_1.jpg',
-  'images/page_9_img_8.jpg',
-  'images/page_9_img_9.jpg',
-  'images/page_9_img_10.jpg',
-  'images/page_10_img_2.jpg',
-  'images/page_10_img_3.jpg',
-  'images/page_10_img_4.jpg',
-  'images/page_10_img_5.jpg',
-  'images/page_11_img_1.jpg'
-];
+interface EmpreendimentoConfig {
+  titulo: string;
+  descricao: string;
+  localizacao: string[];
+  caracteristicas: string[];
+  investimento: string[];
+  contato: string;
+  estatisticas: Array<{
+    valor: string;
+    unidade: string;
+    descricao: string;
+  }>;
+  galleryImages: string[];
+}
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -96,6 +49,8 @@ export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [corretores, setCorretores] = useState<Corretor[]>([]);
+  const [empreendimentoConfig, setEmpreendimentoConfig] = useState<EmpreendimentoConfig | null>(null);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -113,30 +68,100 @@ export default function LandingPage() {
   });
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 0.5], [1, 1.1]);
-  const totalSlides = galleryImages.length;
 
-  // Carregar corretores do MongoDB
+  // Carregar dados do empreendimento e corretores do MongoDB
   useEffect(() => {
-    async function loadCorretores() {
+    async function loadData() {
       try {
-        const response = await fetch('/api/public/corretores', { cache: 'no-store' });
-        if (response.ok) {
-          const data = await response.json();
-          setCorretores(data || []);
+        setLoading(true);
+        // Carregar empreendimento em destaque
+        const empreendimentoResponse = await fetch('/api/public/empreendimento-destaque', { cache: 'no-store' });
+        if (empreendimentoResponse.ok) {
+          const empreendimentoData = await empreendimentoResponse.json();
+          // Garantir que galleryImages seja um array válido
+          if (empreendimentoData && Array.isArray(empreendimentoData.galleryImages) && empreendimentoData.galleryImages.length > 0) {
+            setEmpreendimentoConfig(empreendimentoData);
+          } else {
+            console.warn('Dados do empreendimento sem galleryImages válido, usando fallback');
+          }
+        }
+
+        // Carregar corretores
+        const corretoresResponse = await fetch('/api/public/corretores', { cache: 'no-store' });
+        if (corretoresResponse.ok) {
+          const corretoresData = await corretoresResponse.json();
+          setCorretores(corretoresData || []);
         }
       } catch (error) {
-        console.error('Erro ao carregar corretores:', error);
+        console.error('Erro ao carregar dados:', error);
+      } finally {
+        setLoading(false);
       }
     }
-    loadCorretores();
+    loadData();
   }, []);
 
+  // Atualizar slides quando galleryImages mudar
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % totalSlides);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, [totalSlides]);
+    if (empreendimentoConfig?.galleryImages) {
+      const timer = setInterval(() => {
+        setCurrentSlide(prev => (prev + 1) % empreendimentoConfig.galleryImages.length);
+      }, 6000);
+      return () => clearInterval(timer);
+    }
+  }, [empreendimentoConfig?.galleryImages]);
+
+  // Fallback para dados padrão se não carregar do banco
+  const dadosEmpreendimento = empreendimentoConfig || {
+    titulo: 'Pôr do Sol Eco Village',
+    descricao: 'Carregando informações...',
+    localizacao: [],
+    caracteristicas: [],
+    investimento: [],
+    contato: '',
+    estatisticas: [],
+    galleryImages: [
+      'images/page_2_img_2.jpg',
+      'images/page_2_img_3.jpg',
+      'images/page_2_img_4.jpg',
+      'images/page_3_img_2.jpg',
+      'images/page_3_img_3.jpg',
+      'images/page_3_img_4.jpg',
+      'images/page_3_img_5.jpg',
+      'images/page_3_img_6.jpg',
+      'images/page_3_img_7.jpg',
+      'images/page_3_img_8.jpg',
+      'images/page_4_img_2.jpg',
+      'images/page_4_img_3.jpg',
+      'images/page_4_img_4.jpg',
+      'images/page_4_img_5.jpg',
+      'images/page_4_img_6.jpg',
+      'images/page_5_img_2.jpg',
+      'images/page_5_img_3.jpg',
+      'images/page_5_img_4.jpg',
+      'images/page_5_img_5.jpg',
+      'images/page_5_img_6.jpg',
+      'images/page_5_img_7.jpg',
+      'images/page_6_img_2.jpg',
+      'images/page_6_img_3.jpg',
+      'images/page_6_img_4.jpg',
+      'images/page_6_img_5.jpg',
+      'images/page_7_img_2.jpg',
+      'images/page_9_img_1.jpg',
+      'images/page_9_img_8.jpg',
+      'images/page_9_img_9.jpg',
+      'images/page_9_img_10.jpg',
+      'images/page_10_img_2.jpg',
+      'images/page_10_img_3.jpg',
+      'images/page_10_img_4.jpg',
+      'images/page_10_img_5.jpg',
+      'images/page_11_img_1.jpg'
+    ]
+  };
+
+  const estatisticas = dadosEmpreendimento.estatisticas || [];
+  const galleryImages = dadosEmpreendimento.galleryImages || [];
+  const totalSlides = galleryImages.length;
 
   const handlePrev = () => {
     let attempts = 0;
@@ -192,11 +217,16 @@ export default function LandingPage() {
     }
 
     try {
-      // Aqui você pode adicionar a lógica para enviar o formulário
-      console.log('Formulário enviado:', formData);
+      // Enviar mensagem para API
+      const response = await fetch('/api/contato', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
 
-      // Simulação de envio - substitua por chamada real de API
-      // await fetch('/api/contato', { method: 'POST', body: JSON.stringify(formData) });
+      if (!response.ok) {
+        throw new Error('Erro ao enviar mensagem');
+      }
 
       toastSuccess('Mensagem enviada com sucesso! Entraremos em contato em breve.');
 
@@ -238,7 +268,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-4">
           <div className="flex h-20 items-center justify-between">
             <Link href="#hero" className="flex items-center gap-3" onClick={() => handleScrollTo('#hero')}>
-              <Image src="/logo_duarte_sem_fundo.png" alt="Duarte Urbanismo" width={140} height={45} className="h-10 w-auto" />
+              <Image src="/logo.png" alt="Duarte Urbanismo" width={140} height={45} className="h-10 w-auto" />
             </Link>
 
             {/* Menu Desktop */}
@@ -344,7 +374,7 @@ export default function LandingPage() {
             className="mb-8"
           >
             <Image
-              src="/logo_duarte_sem_fundo.png"
+              src="/logo-white.png"
               alt="Duarte Urbanismo"
               width={280}
               height={90}
@@ -353,18 +383,21 @@ export default function LandingPage() {
             />
           </motion.div>
 
-          <motion.h1
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="mb-6 text-6xl font-bold tracking-tight md:text-8xl lg:text-9xl"
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="mb-8"
           >
-            PÔR DO SOL
-            <br />
-            <span className="bg-linear-to-r from-emerald-300 via-amber-200 to-emerald-300 bg-clip-text text-transparent">
-              ECO VILLAGE
-            </span>
-          </motion.h1>
+            <Image
+              src="/por-do-dol.png"
+              alt="Pôr do Sol Eco Village"
+              width={600}
+              height={300}
+              className="mx-auto h-auto w-auto max-w-2xl drop-shadow-2xl"
+              priority
+            />
+          </motion.div>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -547,12 +580,22 @@ export default function LandingPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <Image
-              src={`/${galleryImages[0]}`}
-              alt="Natureza e sustentabilidade"
-              fill
-              className="object-cover"
-            />
+            {galleryImages[0] ? (
+              <Image
+                src={`/${galleryImages[0]}`}
+                alt="Natureza e sustentabilidade"
+                fill
+                className="object-cover"
+                onError={(e) => {
+                  console.error('Erro ao carregar imagem:', galleryImages[0]);
+                  setImageErrors(prev => new Set(prev).add(galleryImages[0]));
+                }}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center bg-slate-200">
+                <p className="text-slate-400">Carregando imagem...</p>
+              </div>
+            )}
             <div className="absolute inset-0 bg-linear-to-t from-emerald-950/40 via-transparent to-transparent" />
           </motion.div>
         </div>
@@ -576,12 +619,22 @@ export default function LandingPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <Image
-                src={`/${galleryImages[1]}`}
-                alt="Chácaras Pôr do Sol Eco Village"
-                fill
-                className="object-cover"
-              />
+              {galleryImages[1] ? (
+                <Image
+                  src={`/${galleryImages[1]}`}
+                  alt="Chácaras Pôr do Sol Eco Village"
+                  fill
+                  className="object-cover"
+                  onError={(e) => {
+                    console.error('Erro ao carregar imagem:', galleryImages[1]);
+                    setImageErrors(prev => new Set(prev).add(galleryImages[1]));
+                  }}
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center bg-slate-200">
+                  <p className="text-slate-400">Carregando imagem...</p>
+                </div>
+              )}
             </motion.div>
 
             {/* Texto à direita */}
@@ -667,12 +720,22 @@ export default function LandingPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <Image
-                src={`/${galleryImages[2]}`}
-                alt="Áreas de lazer"
-                fill
-                className="object-cover"
-              />
+              {galleryImages[2] ? (
+                <Image
+                  src={`/${galleryImages[2]}`}
+                  alt="Áreas de lazer"
+                  fill
+                  className="object-cover"
+                  onError={(e) => {
+                    console.error('Erro ao carregar imagem:', galleryImages[2]);
+                    setImageErrors(prev => new Set(prev).add(galleryImages[2]));
+                  }}
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center bg-slate-200">
+                  <p className="text-slate-400">Carregando imagem...</p>
+                </div>
+              )}
               <div className="absolute inset-0 bg-linear-to-t from-emerald-950/60 via-transparent to-transparent" />
             </motion.div>
           </motion.div>
@@ -689,12 +752,22 @@ export default function LandingPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <Image
-              src={`/${galleryImages[3]}`}
-              alt="Tijucas - Santa Catarina"
-              fill
-              className="object-cover"
-            />
+            {galleryImages[3] ? (
+              <Image
+                src={`/${galleryImages[3]}`}
+                alt="Tijucas - Santa Catarina"
+                fill
+                className="object-cover"
+                onError={(e) => {
+                  console.error('Erro ao carregar imagem:', galleryImages[3]);
+                  setImageErrors(prev => new Set(prev).add(galleryImages[3]));
+                }}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center bg-slate-200">
+                <p className="text-slate-400">Carregando imagem...</p>
+              </div>
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/40 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-12 text-white">
               <h2 className="text-4xl font-bold md:text-5xl" style={{ fontFamily: 'var(--font-playfair), serif' }}>
@@ -1084,18 +1157,11 @@ export default function LandingPage() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5 }}
                   >
-                    {/* Badge de Área de Atuação */}
-                    {corretor.areaAtuacao && (
-                      <div className="mb-2 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-lg">
-                        {corretor.areaAtuacao}
-                      </div>
-                    )}
-
                     {/* Foto Redonda */}
                     <div className="mb-4 flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-emerald-100 shadow-lg transition hover:scale-105 hover:shadow-xl">
                       <Image
-                        src={corretor.foto || '/logo_duarte_sem_fundo.png'}
-                        alt={`${corretor.nome}${corretor.areaAtuacao ? ` - ${corretor.areaAtuacao}` : ''}`}
+                        src={corretor.foto || '/logo.png'}
+                        alt={corretor.nome}
                         width={128}
                         height={128}
                         className="h-full w-full rounded-full object-cover"
@@ -1105,8 +1171,8 @@ export default function LandingPage() {
                           // Fallback para logo se foto não existir
                           const target = e.target as HTMLImageElement;
                           const currentSrc = target.getAttribute('src') || '';
-                          if (!currentSrc.includes('logo_duarte_sem_fundo.png')) {
-                            target.src = '/logo_duarte_sem_fundo.png';
+                          if (!currentSrc.includes('logo.png')) {
+                            target.src = '/logo.png';
                           }
                         }}
                       />
@@ -1324,7 +1390,7 @@ export default function LandingPage() {
         href="https://wa.me/554792112284?text=Ol%C3%A1%2C+tenho+interesse+no+empreendimento+P%C3%B4r+do+Sol+Eco+Village."
         target="_blank"
         rel="noreferrer"
-        className="group fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-full bg-[#25D366] px-6 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-2xl transition hover:scale-105"
+        className="group fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-full bg-[#25D366] px-4 py-4 md:px-6 md:py-4 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-2xl transition hover:scale-105"
         aria-label="WhatsApp - Falar com especialista"
       >
         <span className="relative flex h-10 w-10 items-center justify-center">
@@ -1338,7 +1404,7 @@ export default function LandingPage() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.75 8.75s-.25 1.5 1.5 3.25c1.75 1.75 3.25 1.5 3.25 1.5l1-.75" />
           </svg>
         </span>
-        WhatsApp
+        <span className="hidden md:inline">WhatsApp</span>
       </a>
     </div>
     </>

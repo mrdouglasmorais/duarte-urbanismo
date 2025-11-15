@@ -11,6 +11,7 @@ interface FooterProps {
 export function Footer({ variant = 'dark', showFullFooter = true }: FooterProps) {
   const isDark = variant === 'dark';
   const logoHabitvs = isDark ? '/habitvs-light.png' : '/habitvs-dark.png';
+  const logoDuarte = isDark ? '/logo-white.png' : '/logo.png';
 
   return (
     <footer className={`relative ${isDark ? 'border-t border-emerald-800/30 bg-gradient-to-br from-emerald-950 via-green-900 to-emerald-950 py-16 text-white' : 'border-t border-slate-200 bg-white py-12 text-slate-900'}`}>
@@ -34,7 +35,7 @@ export function Footer({ variant = 'dark', showFullFooter = true }: FooterProps)
               {/* Logo e Informações */}
               <div className="text-center md:text-left">
                 <Image
-                  src="/logo_duarte_sem_fundo.png"
+                  src={logoDuarte}
                   alt="Duarte Urbanismo"
                   width={200}
                   height={65}
